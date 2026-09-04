@@ -2,48 +2,85 @@
 
 ## 日本語
 
-### Gate 1: API capability
+### 目的・baseline
 
-最小の unpacked MV3 test fixture（製品実装ではない）で、対象 browser ごとに DNR `set` が `User-Agent`、`Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform` へ実際に反映されるか確認する。`main_frame`、same-origin subresource、cross-origin を分け、DevTools と echo endpoint の双方で観測する。optional host permission の grant/revoke と dynamic rule cleanup も確認する。
+Sony Xperia 1 V の Quetta Android で native narrow viewport を維持し、一般的な Desktop Chrome として成立する最小 identity を特定する。YouTube は既知の検証対象であり、専用 workaround は作らない。本フェーズは観測・A/B test 準備までで、Extension 実装は開始しない。
 
-合格: documented API のみで値が安定し、revoke 後に影響が残らない。不合格: Android browser で API 不在、header が保護され変更不能、rule が許可範囲外へ漏れる。
+| Baseline | 固定条件 | 既知結果 |
+|---|---|---|
+| Native | 同一端末/Quetta、PC版サイト OFF、User-Agent Switcher and Manager OFF、Android native viewport | identity と機能結果は要実機観測 |
+| Success | 同一端末/Quetta/account/network、PC版サイト OFF、native viewport、同 Extension ON、成功済み Desktop Chrome/Windows profile | YouTube Desktop Web、login、通常再生、Native Live Chat は成功確認済み |
 
-### Gate 2: identity matrix
+両者で日時、Android/Quetta/Extension version、profile 設定表示、`innerWidth`/`innerHeight`/`devicePixelRatio`、account/network 条件を記録する。「設定値」と wire/page/Worker の「実測値」を分離し、Cookie、token、request body は採取しない。
 
-各 condition で HTTP headers、`navigator.userAgent`、`appVersion`、`platform`、`vendor`、`product`、`userAgentData` low/high entropy、Window と dedicated/shared/service Worker を採取する。目的は fingerprint 完全偽装ではなく、どの surface が site selection に実際に寄与するかの切り分け。
+### 観測手順
 
-### Gate 3: product outcome
+1. Native/Success の順序を交互にして各5回、fresh tab から測る。
+2. 中立的な HTTPS first-party echo/test page で HTTP、Window、Dedicated Worker を同時観測する。Shared/Service Worker は利用可能時のみ別記し、registration/cache を管理する。
+3. top-level `main_frame`、same-origin、cross-origin、redirect chain、first request を分ける。
+4. YouTube では identity header/property と機能結果のみ観測し、payload、Cookie、Authorization、visitorData は保存しない。
+5. baseline 差分確定後に test value を作る。Chrome version、brand順序/GREASE、platform version は推測しない。
 
-Sony Xperia 1 V + Quetta Android + YouTube で、同じ account/cookies/viewport を用い、Default と A〜E 条件を fresh navigation から各5回比較する。Desktop Web、Native Live Chat、login、別 Extension の通常動作、error text、network/console を記録する。YouTube payload は観測のみで変更しない。
+### 試験順序
 
-### Gate 4: minimum modification
+詳細は `IDENTITY_AB_TEST_MATRIX.md` を正とする。一度に一変数を原則とし、不可避な整合 tuple は compound test と明記して直後に ablation する。
 
-成功した条件から一要素ずつ除く ablation test を行う。`User-Agent` のみで成立すれば UA-CH と MAIN-world を採用しない。same-origin subresource が不要なら `main_frame` のみに絞る。MAIN-world が必要なら legacy navigator と `userAgentData` を別々に評価し、Worker の漏れが機能を壊すなら NO-GO。
+- O-N/O-S: 無変更の Native/Success を観測。
+- A1: Successで実測した `User-Agent` を `main_frame` のみに設定。
+- A2: A1が不安定な場合だけ、同じ値を same-origin request へ拡張（値でなくscopeの試験）。
+- B系列: Successと差がある low-entropy UA-CH を一項目ずつ追加。暫定順は `Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`、`Sec-CH-UA` だが、観測差分とQuettaのDNR能力で確定する。
+- C系列: HTTPだけで不足する場合のみ、差のある legacy `navigator` propertyを一つずつ追加。`vendor`/`product`が同値なら省略。
+- D系列: `navigator.userAgentData` low entropy、high entropy、Workerの必要性を順に診断。supported MV3 APIで堅牢に再現不能なsurfaceが必須ならNO-GO候補。
+- E-min: 成功した最小集合だけをclean stateから再構成。Successの全差分を無条件に複製しない。
 
-### Gate 5: compatibility and policy
+各追加後、その要素だけを外すablationとDefault復帰を行う。前段が全項目を満たせば後段へ進まない。
 
-Desktop Chrome、Quetta Android の version を固定記録し、cold start、service worker restart、browser restart、profile update、permission revoke、site redirect、subdomain、incognito off、競合 Extension の rule ordering を確認する。CWS の single purpose、minimum permission、remote code、privacy disclosure を review checklist にする。
+### 共通判定
 
-### 判定基準
+各runをPass/Fail/Not observedで記録する: native CSS viewport維持、Desktop Web、login、通常動画、Native Live Chat、reload、same-tab navigation、new tab、Quetta再起動、許可範囲外へのrule漏れなし、Default/revoke後の完全復帰、中立pageと少なくとも3種類の一般siteで明白な破綻なし。Desktop WebとLive Chatは別outcomeにする。一時的障害は同時間帯のNative/Success control再試験なしにidentity failureと断定しない。
 
-- GO: supported API、optional origin grant、DNR 中心で再現性ある成果。MAIN-world 不要または極小で、CWS 説明可能。
-- CONDITIONAL GO: MAIN-world または same-origin subresource 整合が必要だが、限定的・監査可能で追加試験が明確。
-- NO-GO: unsupported API、CDP、service-specific payload、広範 worker/page patch、過剰 host permission が必須。または Native Live Chat 成果を再現できない。
+### Manifest V3 capability
 
-成果物は test matrix、raw observation（secret を除外）、browser/version、rule scope、差分、最終 fixture、未解決事項。推測値を合格扱いしない。
+DNR `modifyHeaders`/`set` はrequest header候補だが、各UA-CH headerがQuettaで変更できるか要実機確認。permissionは `declarativeNetRequestWithHostAccess` + `optional_host_permissions` を第一候補とする。
+
+`scripting` + `world: "MAIN"` はWindow propertyの候補にすぎず専用identity APIではない。pageから干渉可能で、WorkerNavigatorやbrowser内部UA metadataを変えない。`document_start`も全page code/Workerより先の絶対保証ではない。isolated worldではpageが読む`navigator`を変えられない。
+
+公式Extension APIでは、`navigator.userAgentData`、high-entropy値、Worker identityをbrowser-levelで一括整合するsupported手段は確認できない。CDPは対象外。
+
+### 境界とTechnical Gate
+
+youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、endpoint別identity、HTTP error起点切替、proxy/IP、randomization、service-specific workaround、unsupported API、Worker constructor hook、広範prototype patch、remote codeを扱わない。
+
+GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。現在は未観測のため **CONDITIONAL GO**。必須差分がsupported APIで再現不能または禁止変更が必要なら **NO-GO**。
+
+### 一次資料
+
+[`chrome.declarativeNetRequest`](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest)、[`chrome.permissions`](https://developer.chrome.com/docs/extensions/reference/api/permissions)、[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[`chrome.scripting`](https://developer.chrome.com/docs/extensions/reference/api/scripting)、[UA-CH specification](https://wicg.github.io/ua-client-hints/)、[Chrome UA-CH guide](https://developer.chrome.com/docs/privacy-security/user-agent-client-hints)。
 
 ## English
 
-### Gate 1: API capability
+### Objective and baselines
 
-Using a minimal unpacked MV3 test fixture—not product implementation—verify per browser whether DNR `set` actually changes `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform`. Separate `main_frame`, same-origin subresources, and cross-origin requests; observe with both DevTools and an echo endpoint. Validate optional-host grant/revoke and dynamic-rule cleanup.
+Identify the minimum general Desktop Chrome identity on Quetta Android/Sony Xperia 1 V while retaining the native narrow viewport. YouTube is a known validation target, not a reason for service-specific behavior. This phase stops at observation and A/B-test readiness.
 
-Pass when documented APIs behave consistently and revocation leaves no effect. Fail when the Android browser lacks the API, protects required headers, or leaks rules outside granted scope.
+Native fixes the same device/Quetta with Desktop Site OFF, User-Agent Switcher and Manager OFF, and native viewport; all identity and functional values require device observation. Success fixes the same device/Quetta/account/network and viewport with the proven Desktop Chrome/Windows profile ON; Desktop Web, login, playback, and Native Live Chat are user-confirmed. Record versions, time, displayed profile configuration, viewport, account, and network. Separate configured from measured wire/page/Worker values; never collect cookies, tokens, or bodies.
 
-### Gates 2–5
+### Observation and sequence
 
-Capture the HTTP and JavaScript identity matrix across Window and Worker contexts. Run Default and A–E conditions five times each on Sony Xperia 1 V, Quetta Android, and YouTube with the same account, cookies, and viewport. Observe but never alter YouTube payloads. Then perform ablation: remove every element that is not necessary. Validate desktop Chrome/Quetta versions, cold starts, extension-worker/browser restarts, permission revocation, redirects, subdomains, incognito-off behavior, and competing extension rule order. Review CWS single-purpose, minimum-permission, remote-code, and privacy requirements.
+Alternate Native/Success for five fresh-tab runs each. Use a neutral HTTPS first-party echo/test page for HTTP, Window, and Dedicated Worker; record Shared/Service Workers separately when available. Separate main-frame, same-origin, cross-origin, redirect, and first-request observations. On YouTube collect identity and outcomes only. Never guess versions, brand order/GREASE, or platform versions.
 
-GO requires supported APIs, optional origin grants, reproducible DNR-centered results, and explainable CWS behavior. CONDITIONAL GO permits only bounded, auditable MAIN-world or same-origin consistency work with explicit further tests. NO-GO applies when unsupported APIs, CDP, service payload changes, broad Worker/page patching, excessive host access, or irreproducible Native Live Chat behavior is required.
+The authoritative sequence is in `IDENTITY_AB_TEST_MATRIX.md`: O controls; A1 measured Success UA on main frame; A2 same-origin scope only if required; B adds only differing low-entropy hints individually; C adds only differing legacy Window fields if HTTP is insufficient; D diagnoses `userAgentData`, high entropy, and Worker necessity; E-min rebuilds only the proven minimum. Use one variable per test, label unavoidable tuples as compound, immediately ablate, and stop when all outcomes pass.
 
-Record the test matrix, secret-free raw observations, browser/version, rule scope, diffs, final fixture, and unresolved items. Never treat guessed values as passing evidence.
+### Outcomes and MV3 capability
+
+Record Pass/Fail/Not observed for unchanged viewport, Desktop Web, login, playback, Native Live Chat, reload, same-tab, new-tab, Quetta restart, origin scope/cleanup, and regressions on a neutral page plus three general-site classes. Treat Desktop Web and Live Chat separately and rerun controls for transient failures.
+
+DNR header `set` and `declarativeNetRequestWithHostAccess` plus optional host grants are candidates requiring Quetta validation. MAIN-world scripting is not a dedicated identity API, is page-interferable, does not cover Worker/browser metadata, and has no absolute earliest-execution guarantee. Reviewed official Extension APIs do not confirm an atomic browser-level override for `userAgentData`, high entropy, and Worker identity; CDP is excluded.
+
+### Boundaries and Technical Gate
+
+All prohibited variables and seven GO conditions are identical to the Japanese section. Current status is **CONDITIONAL GO** because values remain unmeasured; use **NO-GO** if a required difference is unsupported or requires prohibited behavior.
+
+### Primary sources
+
+The six primary-source links above apply identically.
