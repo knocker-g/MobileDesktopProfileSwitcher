@@ -16,3 +16,6 @@ coverage/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Raw device identity investigation captures
+investigation/results/baseline/*.json

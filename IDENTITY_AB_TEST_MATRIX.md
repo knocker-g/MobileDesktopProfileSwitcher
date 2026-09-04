@@ -59,6 +59,24 @@ GOはE-minが全項目を満たし、各必須要素がablationで説明され�
 
 禁止変数: youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、service-specific workaround、endpoint別identity、401/403/429起点切替、proxy/IP、randomization。
 
+### Baseline実測による更新（2026-09-04）
+
+`native-01..05`と`success-01..05`を解析した結果、timestamp以外は各baseline内で5回完全一致し、NativeとSuccess間も完全一致した。すべてのstatusは`available`で、PageとWorkerの共通surfaceも一致した。したがって先行するIdentity観測表の「要実機観測」は、JavaScript-visible identityについて次の実測表で置き換える。HTTP wire欄は置き換えない。
+
+| Surface | Native → Success | A/B分類 | 更新後の扱い |
+|---|---|---|---|
+| Page `userAgent`, `platform`, `vendor`, `product`, `appVersion` | unchanged | Probably unnecessary | Success成立時にもnative値のまま。JS patchを初期試験から除外 |
+| Page `language`, `languages` | unchanged | Probably unnecessary | identity変更候補から除外 |
+| Page UAData `brands`, `mobile`, `platform` | unchanged | Probably unnecessary | MAIN-world UAData patchを初期試験から除外 |
+| Page high entropy全取得値 | unchanged | Probably unnecessary | 値のoverrideを試験しない |
+| Worker `userAgent`, `platform` | unchanged | Probably unnecessary | Worker patchを設計しない |
+| Worker UAData low/high entropy | unchanged | Probably unnecessary | Workerはnative identityのままSuccess成立 |
+| HTTP `User-Agent` | JSONでは未観測 | Must test | wire Native/Success差分を最優先で観測し、その後A1/A2 |
+| HTTP low-entropy UA-CH | JSONでは未観測 | Must test | `Sec-CH-UA*`をwireで実測後、差のあるfieldだけ個別試験 |
+| HTTP high-entropy Client Hints | JSONでは未観測 | Cannot determine yet | server opt-inがあるrequestでのみ別観測 |
+
+更新後の順序はO-N/O-SのHTTP wire観測 → A1 (`User-Agent`, `main_frame`) → 必要ならA2 (same-origin scope) → wireで差が実測されたUA-CHだけを一項目ずつ追加 → E-minとする。C/D/W系列は、HTTP系列が失敗し、かつ別の証拠が得られた場合にだけ再開する。
+
 ## English
 
 ### Recording rules and identity matrix
@@ -76,3 +94,21 @@ O-N/O-S establish five-run controls; CAP-H checks each header on a neutral origi
 For every ID×five runs record environment, viewport, configured versus measured identity, separate YouTube outcomes, lifecycle states, neutral plus three general-site classes, cleanup, and Pass/Fail/Not observed evidence. GO requires E-min to pass with every element explained by ablation and implemented only through supported MV3 APIs plus optional per-origin access. Invasive Worker/high-entropy patching, service spoofing, or excessive permission means NO-GO. Current status is **CONDITIONAL GO**.
 
 The prohibited-variable list is identical to the Japanese section and must never be added to the matrix.
+
+### Baseline measurement update (2026-09-04)
+
+Analysis of `native-01..05` and `success-01..05` found exact five-run stability within each baseline after excluding timestamps, and exact equality between Native and Success. Every status was `available`; common Page and Worker surfaces also matched. This replaces the earlier “requires on-device observation” entries for JavaScript-visible identity, but does not replace any HTTP wire entry.
+
+| Surface | Native → Success | A/B class | Updated handling |
+|---|---|---|---|
+| Page legacy navigator fields | unchanged | Probably unnecessary | Leave JS patching out of initial tests |
+| Page language fields | unchanged | Probably unnecessary | Remove from identity-change candidates |
+| Page UAData low entropy | unchanged | Probably unnecessary | Leave MAIN-world UAData patching out |
+| Page high entropy | unchanged | Probably unnecessary | Do not test value overrides |
+| Worker legacy identity | unchanged | Probably unnecessary | Do not design Worker patches |
+| Worker UAData low/high entropy | unchanged | Probably unnecessary | Success works while Worker remains native |
+| HTTP `User-Agent` | not observed by JSON | Must test | Measure wire difference first, then A1/A2 |
+| HTTP low-entropy UA-CH | not observed by JSON | Must test | Measure `Sec-CH-UA*`, then test only differing fields |
+| HTTP high-entropy Client Hints | not observed by JSON | Cannot determine yet | Observe separately only on opted-in requests |
+
+The updated order is HTTP O-N/O-S observation, A1 (`User-Agent` on `main_frame`), A2 same-origin scope only if needed, individually adding only wire-observed UA-CH differences, then E-min. Resume C/D/W only if HTTP tests fail and new evidence justifies them.
