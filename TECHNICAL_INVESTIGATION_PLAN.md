@@ -61,6 +61,17 @@ GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablat
 
 JavaScript-visible identityがNative/Successで不変だったため、次のgateはHTTP wireの実測とする。第一選択はQuetta tabがUSB remote debugging targetとして露出する場合のDevTools Network、fallbackはADB reverse + user管理local echoである。Quetta対応は未確認なので最初にfeasibility checkを行う。詳細手順、記録template、privacy境界は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`を正とする。観測前にDNR prototypeへ進まない。
 
+実測により、対象Quetta buildのremote debuggingとDevTools Network利用は確認済み。initial `main_frame`の4headerはすべてDesktop Chrome/Windowsへchangedし、Success same-origin JavaScript requestも同じ4値だった。次段はA〜D/S1、必要時のみS2、成功構成のablationとする。Chrome 154はexperiment fixtureでありproduct defaultではない。
+
+### DNR実装前gate
+
+Chrome公式`declarativeNetRequest`は`modifyHeaders`の`set`を「同名headerを置換して新値を設定」と一般定義し、`append`だけに明示allowlistを置く。公式referenceには今回の4headerを`set`禁止とする一覧は見当たらない。従って4headerはrule schema上の候補だが、UA-CH各名への実効変更保証とは扱わない。実装開始前CAP-Hで、Chrome/Quetta上のrule登録成否とwire結果を各header単独で確認する。
+
+- `User-Agent`: referenceのappend allowlistにも明記され、`set`候補。実機確認はなお必要。
+- `Sec-CH-UA` / `Sec-CH-UA-Mobile` / `Sec-CH-UA-Platform`: 一般`set` schema候補だがheader別保証なし。要prototype capability test。
+
+UA-onlyで成功すればUA-CH変更不能でもGO可能。必須UA-CHがDNRで変更不能なら、consumer MV3で本方針内の同等なsupported代替は現時点で確認できず、`debugger`、service-specific spoof、invasive patchへ進まずNO-GO候補とする。
+
 ## English
 
 ### Objective and baselines
@@ -92,3 +103,11 @@ The six primary-source links above apply identically.
 ### HTTP wire observation phase
 
 Because JavaScript-visible identity was unchanged between Native and Success, the next gate is direct HTTP wire observation. Prefer DevTools Network only if Quetta exposes its tab as a USB remote-debugging target; otherwise use an ADB-reverse connection to a user-controlled local echo. Quetta support is unverified, so begin with a feasibility check. `HTTP_WIRE_IDENTITY_INVESTIGATION.md` is authoritative for steps, recording, and privacy boundaries. Do not begin a DNR prototype before observation.
+
+Observation confirmed remote debugging and DevTools Network on the tested Quetta build. All four initial-main-frame headers changed to Desktop Chrome/Windows, and the Success same-origin JavaScript request used the same four values. Next run A–D/S1, S2 only if necessary, followed by ablation. Chrome 154 is an experiment fixture, not a product default.
+
+### Pre-implementation DNR gate
+
+The official `declarativeNetRequest` reference defines `modifyHeaders` `set` generally as replacing same-name headers with a new value, while only `append` has an explicit allowlist. It does not list these four names as forbidden for `set`, but it also does not guarantee effective per-header UA-CH modification. Therefore all four are rule-schema candidates requiring CAP-H tests for registration and wire effect on Chrome/Quetta.
+
+`User-Agent` is additionally named in the append allowlist; the three `Sec-CH-UA*` fields have no per-name guarantee. If UA alone succeeds, inability to change UA-CH does not block GO. If a required UA-CH field cannot be changed with DNR, no equivalent supported consumer-MV3 alternative within scope is currently confirmed; do not use `debugger`, service spoofing, or invasive patching, and treat this as a NO-GO candidate.

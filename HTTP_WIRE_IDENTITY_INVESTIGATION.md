@@ -87,6 +87,25 @@ Cookie、Authorization/OAuth、body、youtubei payload、`clientName`/`clientVer
 - [Chrome DevTools: Network features reference](https://developer.chrome.com/docs/devtools/network/reference)
 - [Android Developers: ADB reverse to a local server](https://developer.android.com/develop/ui/views/layout/webapps/access-local-server)
 
+### 10. 実測完了（2026-09-04）
+
+Xperia 1 V上のQuetta tabは`chrome://inspect/#devices`へremote debugging targetとして実際に公開され、DevTools Networkで観測できた。これは当該実機/buildのObserved factであり、全Quetta versionへの保証ではない。Preserve log/Disable cacheをON、PC版サイトOFF、native viewport維持で採取した。
+
+| Request | Header | Native | Success | Changed |
+|---|---|---|---|---|
+| initial `main_frame` | `User-Agent` | Android 10 / Chrome 148 / Mobile | Windows 10 x64 / Chrome 154 / non-Mobile | yes |
+| initial `main_frame` | `Sec-CH-UA` | Chromium 148, Quetta 148, Not/A)Brand 99 | Not/A)Brand 8, Chromium 154, Google Chrome 154 | yes |
+| initial `main_frame` | `Sec-CH-UA-Mobile` | `?1` | `?0` | yes |
+| initial `main_frame` | `Sec-CH-UA-Platform` | `"Android"` | `"Windows"` | yes |
+| same-origin JavaScript | `User-Agent` | 未観測 | Windows 10 x64 / Chrome 154 / non-Mobile | Native比較未完了 |
+| same-origin JavaScript | `Sec-CH-UA` | 未観測 | Success `main_frame`と一致 | Native比較未完了 |
+| same-origin JavaScript | `Sec-CH-UA-Mobile` | 未観測 | `?0`、Success `main_frame`と一致 | Native比較未完了 |
+| same-origin JavaScript | `Sec-CH-UA-Platform` | 未観測 | `"Windows"`、Success `main_frame`と一致 | Native比較未完了 |
+
+initial `main_frame`では4headerすべてがNative→Successでchanged。Successの`main_frame`とsame-origin JavaScriptでは4headerが完全一致した。ただしNative same-origin値は今回提示されていないため、そのrequest種別のNative→Success差分を直接Observedとはしない。redirectは存在/値の報告がなくUnknown。
+
+同時に既存ProbeではPage/Worker JavaScript identityがNative値のままunchangedだった。Observedな成功状態はwire=Desktop Chrome/Windows、JavaScript=Quetta/Android/mobileである。この不一致で既知caseは成功したが、JavaScript patchが一般に不要とは証明しない。
+
 ## English
 
 ### 1. Objective and scope
@@ -128,3 +147,9 @@ The prohibited data and techniques exactly match the Japanese section. This phas
 ### 9. Sources
 
 The three primary-source links above apply identically.
+
+### 10. Completed observation (2026-09-04)
+
+The Quetta tab on the tested Xperia 1 V was observed as a remote-debugging target in `chrome://inspect/#devices`, and DevTools Network worked. This is evidence for the tested device/build, not all Quetta versions. With Preserve log and Disable cache enabled, Desktop Site off, and the native viewport retained, all four initial-main-frame headers changed: UA from Android/Chrome 148/Mobile to Windows x64/Chrome 154/non-Mobile; brands from Chromium/Quetta 148 plus Not/A)Brand 99 to Chromium/Google Chrome 154 plus Not/A)Brand 8; mobile from `?1` to `?0`; platform from Android to Windows.
+
+All four Success same-origin JavaScript-request values matched the Success main frame. Native same-origin values were not supplied, so a direct Native→Success classification for that request type remains incomplete. Redirect presence/values are Unknown. Existing Probe evidence simultaneously shows unchanged native Quetta/Android Page and Worker identity. Thus wire/Desktop and JavaScript/native identity coexist in the observed successful case, without proving JavaScript patching universally unnecessary.

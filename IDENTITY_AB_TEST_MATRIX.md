@@ -81,6 +81,23 @@ GOはE-minが全項目を満たし、各必須要素がablationで説明され�
 
 実測値は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`のrun sheetへ記入する。最低行はinitial `main_frame`とsame-origin subresource × `User-Agent`、`Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`。redirectが実測された場合だけredirect後`main_frame`行を追加する。`missing`（header不在）と`not observed`（request未採取）を区別する。Native/Successでunchangedなheaderはprototype候補から除外する。
 
+### Wire実測後のprototype matrix
+
+4headerすべてがinitial `main_frame`でchangedしたため、値軸は既知成功Chrome 154 fixtureをexperiment profileとして使い、次の順で一つずつ追加する。これはproduct defaultのversion決定ではない。
+
+| 順序 | Header集合 | 理由 |
+|---|---|---|
+| A | `User-Agent` | legacy server selectionの最小単独候補 |
+| B | A + `Sec-CH-UA-Mobile` | desktop/mobileを直接表すが必要性は未証明 |
+| C | B + `Sec-CH-UA-Platform` | OS差を追加。必要性は未証明 |
+| D | C + `Sec-CH-UA` | brand/version tupleを最後に追加し寄与を分離 |
+
+提示例より`Sec-CH-UA-Mobile`とPlatformをbrandsより先にする。理由は一変数ずつDesktop/mobile・OS軸を分離し、複数brand/GREASE/versionを含むcompoundな`Sec-CH-UA`を最後に置くためであり、必要性の事実認定ではない。browserがUA-CHの不整合状態を拒否する場合だけ、失敗を記録して最小compound testへ移る。
+
+scope軸は全探索せずA/S1→B/S1→C/S1→D/S1。最初に成功した構成を各header ablationで確認する。S1全敗時だけ、D/S2から開始し、成功すれば逆ablationでheaderを削る。S2はsame-origin requestまでで、cross-originは含めない。Success baselineでS2相当の4header一致はObservedだが、S2の必要性はUnknown。
+
+成功条件はnative viewport維持、Desktop Web、Google/YouTube login維持、通常動画、Native Live Chat、基本操作に明白な破綻なし。LiveFlow/NicoFlowは成功条件・依存対象にしない。
+
 ## English
 
 ### Recording rules and identity matrix
@@ -120,3 +137,11 @@ The updated order is HTTP O-N/O-S observation, A1 (`User-Agent` on `main_frame`)
 ### HTTP wire recording template
 
 Record measurements in the run sheet in `HTTP_WIRE_IDENTITY_INVESTIGATION.md`. Minimum rows are initial `main_frame` and same-origin subresource, each crossed with `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform`. Add post-redirect `main_frame` rows only when a redirect is observed. Distinguish a missing header from an unobserved request. Exclude headers unchanged between Native and Success from prototype candidates.
+
+### Post-observation prototype matrix
+
+Because all four initial-main-frame headers changed, use the proven Chrome 154 values as an experiment fixture, not a product default. Add one header at a time: A=`User-Agent`; B=A+`Sec-CH-UA-Mobile`; C=B+`Sec-CH-UA-Platform`; D=C+`Sec-CH-UA`. Mobile and platform precede the compound brands/GREASE/version field to isolate simpler desktop/mobile and OS axes; this ordering is a test-design choice, not proof of necessity. Use a labeled compound test only if the browser rejects inconsistent UA-CH states.
+
+Avoid exhaustive scope combinations: run A/S1 through D/S1 and stop at first success, then ablate each header. Only if all S1 tests fail, begin with D/S2 and remove headers through reverse ablation. S2 includes same-origin requests only. Success showed equal four-header identity on main frame and same-origin JavaScript, but S2 necessity remains Unknown.
+
+Success requires retained native viewport, Desktop Web, Google/YouTube login, normal playback, Native Live Chat, and no obvious breakage in basic operation. LiveFlow/NicoFlow are neither success criteria nor dependencies.
