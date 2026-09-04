@@ -10,10 +10,10 @@
 
 | 項目 | 観測方法 | Native値 | Success値 | 差分 | MV3再現 | 候補API | Desktop必要性 | Live Chat必要性 | A/B | 判定 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| HTTP `User-Agent` | HTTPS echo+DevTools、first navigation分離 | 要実機観測 | 設定値Windows NT 10.0/Win64/x64/Chrome 154…、wireは要実機観測 | 要実機観測 | 候補、要Quetta確認 | DNR `set` | 有力・未確定 | 候補・因果未確定 | 可 | 最初に単独試験 |
-| `Sec-CH-UA` | 生値、brand順序/version保存 | 要実機観測 | 要実機観測 | 要実機観測 | header候補、整合未確認 | DNR `set` | 要観測 | 要観測 | 可 | 差がある時のみ |
-| `Sec-CH-UA-Mobile` | echo+DevTools | 要実機観測 | 要実機観測 | 要実機観測 | header候補、要実機 | DNR `set` | 有力・未確定 | 要観測 | 可 | low entropy第一候補 |
-| `Sec-CH-UA-Platform` | echo+DevTools | 要実機観測 | 要実機観測 | 要実機観測 | header候補、要実機 | DNR `set` | 候補 | 候補 | 可 | 差があれば試験 |
+| HTTP `User-Agent` | DevTools、first navigation分離 | Android Chrome 148 Mobile | Windows Chrome 154 fixture | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 有力・未確定 | 候補・因果未確定 | 可 | A/S1で単独試験 |
+| `Sec-CH-UA` | DevTools、生値・brand順序/version保存 | Chromium/Quetta 148/Not Brand 99 | Not Brand 8/Chromium/Google Chrome 154 | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 未確定 | 未確定 | 可 | D/S1で追加 |
+| `Sec-CH-UA-Mobile` | DevTools | `?1` | `?0` | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 有力・未確定 | 未確定 | 可 | B/S1で追加 |
+| `Sec-CH-UA-Platform` | DevTools | `"Android"` | `"Windows"` | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 候補・未確定 | 候補・未確定 | 可 | C/S1で追加 |
 | high entropy HTTP UA-CH | 必要最小`Accept-CH`の中立page | 要実機観測 | 要実機観測 | 要実機観測 | browser metadata一括整合APIなし | DNR能力試験のみ | 不明 | 不明 | 条件付 | low entropy不足時のみ |
 | `navigator.userAgent` | page MAIN world | 要実機観測 | 要実機観測 | 要実機観測 | Windowのみ候補 | `scripting`/MAIN | 不明 | 不明 | 可 | HTTP不足時のみ |
 | `navigator.platform` | page MAIN world | 要実機観測 | 設定値`Win32`、実測要 | 要実機観測 | Windowのみ候補 | `scripting`/MAIN | 不明 | 不明 | 可 | 差があれば |
@@ -28,14 +28,14 @@
 | Worker legacy identity | same-origin Dedicated Workerから観測 | 要実機観測 | 要実機観測 | 要実機観測 | supported browser-level override未確認 | なし | 不明 | 不明 | 観測可 | 必須ならNO-GO候補 |
 | Worker `userAgentData` | Dedicated、可能時Shared/Serviceを別記 | 要実機観測 | 要実機観測 | 要実機観測 | supported browser-level override未確認 | なし | 不明 | 不明 | 観測可 | Window差も記録 |
 
-DNRの一般的header設定能力、Quettaで対象UA-CHを変更できるか、JS/Workerと整合するかは別の問いである。「候補」は実装決定ではない。
+CAP-Hにより、今回のQuetta実機/buildでは4headerの独立DNR変更が実証された。これは機能上の必要性や他buildでの能力を証明せず、JS/Workerとの整合が必要とも示さない。「候補」は実装決定ではない。
 
 ### 段階試験
 
 | ID | 前提 | 今回だけ変えるもの | scope | 目的/次の判断 |
 |---|---|---|---|---|
 | O-N/O-S | clean baseline | なし/既存Extension ON | 実挙動を観測 | 各5回で値・差分・noise確定 |
-| CAP-H | 中立test fixture | headerごとの無害な識別値 | test originのみ | Quetta DNR能力確認 |
+| CAP-H | 中立test fixture | 4headerを各1本のruleで単独変更 | localhost `main_frame`のみ | 4項目と最終OFF復帰すべて**PASS** |
 | A1 | Native | Success実測UA | `main_frame` | 単独効果。成功ならablation A1- |
 | A2 | A1不安定時 | UAのscopeのみ | same-originへ拡張 | subresource必要性。cross-origin禁止 |
 | B1 | A最小 | 実測`Sec-CH-UA-Mobile` | 直前と同じ | 追加後B1-で除去 |
@@ -83,6 +83,8 @@ GOはE-minが全項目を満たし、各必須要素がablationで説明され�
 
 ### Wire実測後のprototype matrix
 
+CAP-H実機試験ではUA、CH-UA、CH-Mobile、CH-Platformがすべて個別にPASSし、他3headerはNativeを維持した。最終OFF復帰もPASSした。このQuetta実機/buildでは独立A/Bが可能であり、UA-CH変更不能gateは解消した。ただし機能上必要なheaderは未確定である。
+
 4headerすべてがinitial `main_frame`でchangedしたため、値軸は既知成功Chrome 154 fixtureをexperiment profileとして使い、次の順で一つずつ追加する。これはproduct defaultのversion決定ではない。
 
 | 順序 | Header集合 | 理由 |
@@ -104,9 +106,11 @@ scope軸は全探索せずA/S1→B/S1→C/S1→D/S1。最初に成功した構�
 
 “Requires on-device observation” is unknown and must never be guessed. Label Success UI values as configured and remeasure wire/page/Worker values. Attach run ID, time, versions, context, and top-level origin; never record secrets, cookies, Authorization, or bodies.
 
-The Japanese identity table is normative. Its exact English meaning is: measure HTTP UA and all low/high-entropy UA-CH in a neutral HTTPS echo plus DevTools; measure Window legacy fields and `userAgentData` in MAIN world; measure Dedicated Worker and, when available, Shared/Service Worker separately. Native and wire/page/Worker Success values all require observation. Only configured Success values are currently known: Windows NT 10.0/Win64/x64/Chrome 154… UA, `Win32`, `Google Inc.`, and `Gecko`. DNR header setting and MAIN-world Window scripting are candidates, not confirmed implementations. No reviewed supported Extension API provides an atomic browser-level override for high-entropy or Worker identity; if either is required, it is a NO-GO candidate.
+The Japanese identity table is normative. Its exact English meaning is: DevTools observation found all four wire headers changed from Native to the Success fixture—Android Chrome 148 Mobile to Windows Chrome 154 for UA, Chromium/Quetta 148 brands to Chromium/Google Chrome 154 brands, `?1` to `?0`, and `"Android"` to `"Windows"`. CAP-H independently changed each one with DNR `set` on this Quetta device/build. Test UA in A/S1, then add Mobile in B/S1, Platform in C/S1, and Brands in D/S1. This proves capability, not functional necessity or portability to other builds. Continue to measure high-entropy HTTP UA-CH only if low entropy is insufficient. No reviewed supported Extension API provides an atomic browser-level override for high-entropy or Worker identity; if either is required, it is a NO-GO candidate.
 
 ### Staged tests
+
+CAP-H device testing passed independent modification of UA, CH-UA, CH-Mobile, and CH-Platform while retaining Native values for the other three headers. Final OFF restoration also passed. This resolves the UA-CH modification capability gate for the tested Quetta device/build, but functional necessity remains unknown.
 
 O-N/O-S establish five-run controls; CAP-H checks each header on a neutral origin; A1 tests measured UA on main frame; A2 changes only same-origin scope if needed; B1/B2/B3 add measured mobile/platform/brand hints separately; B4 tests one differing high-entropy header only if necessary; C1–C5 add differing legacy fields in separate runs; D1–D4 diagnose individual UAData requirements; W1 observes unmodified Worker leakage; E-min rebuilds the proven minimum. Immediately ablate each addition. Skip fields without a measured difference. Use a labeled compound low-entropy tuple only if the browser rejects intermediate states, then ablate each member.
 

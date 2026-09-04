@@ -28,7 +28,7 @@ Sony Xperia 1 V の Quetta Android で native narrow viewport を維持し、一
 - O-N/O-S: 無変更の Native/Success を観測。
 - A1: Successで実測した `User-Agent` を `main_frame` のみに設定。
 - A2: A1が不安定な場合だけ、同じ値を same-origin request へ拡張（値でなくscopeの試験）。
-- B系列: Successと差がある low-entropy UA-CH を一項目ずつ追加。暫定順は `Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`、`Sec-CH-UA` だが、観測差分とQuettaのDNR能力で確定する。
+- B系列: CAP-Hで独立変更可能と実証済みのlow-entropy UA-CHを一項目ずつ追加。順序は `Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`、`Sec-CH-UA` とする。
 - C系列: HTTPだけで不足する場合のみ、差のある legacy `navigator` propertyを一つずつ追加。`vendor`/`product`が同値なら省略。
 - D系列: `navigator.userAgentData` low entropy、high entropy、Workerの必要性を順に診断。supported MV3 APIで堅牢に再現不能なsurfaceが必須ならNO-GO候補。
 - E-min: 成功した最小集合だけをclean stateから再構成。Successの全差分を無条件に複製しない。
@@ -41,7 +41,7 @@ Sony Xperia 1 V の Quetta Android で native narrow viewport を維持し、一
 
 ### Manifest V3 capability
 
-DNR `modifyHeaders`/`set` はrequest header候補だが、各UA-CH headerがQuettaで変更できるか要実機確認。permissionは `declarativeNetRequestWithHostAccess` + `optional_host_permissions` を第一候補とする。
+DNR `modifyHeaders`/`set` による4headerの独立変更は、今回のQuetta実機/buildでCAP-H PASSを確認済み。製品permission設計は `declarativeNetRequestWithHostAccess` + `optional_host_permissions` を第一候補とする。
 
 `scripting` + `world: "MAIN"` はWindow propertyの候補にすぎず専用identity APIではない。pageから干渉可能で、WorkerNavigatorやbrowser内部UA metadataを変えない。`document_start`も全page code/Workerより先の絶対保証ではない。isolated worldではpageが読む`navigator`を変えられない。
 
@@ -51,7 +51,7 @@ DNR `modifyHeaders`/`set` はrequest header候補だが、各UA-CH headerがQuet
 
 youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、endpoint別identity、HTTP error起点切替、proxy/IP、randomization、service-specific workaround、unsupported API、Worker constructor hook、広範prototype patch、remote codeを扱わない。
 
-GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。現在は未観測のため **CONDITIONAL GO**。必須差分がsupported APIで再現不能または禁止変更が必要なら **NO-GO**。
+GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。CAP-H能力gateは今回のQuetta実機/buildで解消したが、機能上必要な最小header/scopeは未確定のため現在は **CONDITIONAL GO**。必須差分がsupported APIで再現不能または禁止変更が必要なら **NO-GO**。
 
 ### 一次資料
 
@@ -59,18 +59,20 @@ GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablat
 
 ### HTTP wire観測フェーズ
 
-JavaScript-visible identityがNative/Successで不変だったため、次のgateはHTTP wireの実測とする。第一選択はQuetta tabがUSB remote debugging targetとして露出する場合のDevTools Network、fallbackはADB reverse + user管理local echoである。Quetta対応は未確認なので最初にfeasibility checkを行う。詳細手順、記録template、privacy境界は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`を正とする。観測前にDNR prototypeへ進まない。
+JavaScript-visible identityがNative/Successで不変だったためHTTP wireを実測した。Quetta tabのUSB remote debugging target公開とDevTools Network観測は確認済みで、詳細手順、記録template、privacy境界は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`を正とする。
 
 実測により、対象Quetta buildのremote debuggingとDevTools Network利用は確認済み。initial `main_frame`の4headerはすべてDesktop Chrome/Windowsへchangedし、Success same-origin JavaScript requestも同じ4値だった。次段はA〜D/S1、必要時のみS2、成功構成のablationとする。Chrome 154はexperiment fixtureでありproduct defaultではない。
 
-### DNR実装前gate
+### DNR capability gate
 
-Chrome公式`declarativeNetRequest`は`modifyHeaders`の`set`を「同名headerを置換して新値を設定」と一般定義し、`append`だけに明示allowlistを置く。公式referenceには今回の4headerを`set`禁止とする一覧は見当たらない。従って4headerはrule schema上の候補だが、UA-CH各名への実効変更保証とは扱わない。実装開始前CAP-Hで、Chrome/Quetta上のrule登録成否とwire結果を各header単独で確認する。
+CAP-H実機試験により、対象Quetta Android実機/buildでは`User-Agent`、`Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`のruleが個別に受理され、runtime errorなく対象`main_frame`のwire値を変更できた。他の3headerは各試験でNative値を維持し、最終OFF復帰もPASSした。従って当該環境の「DNRでUA-CHを変更できない可能性」というcapability gateは解消した。全Chromium Android browserへの一般保証ではなく、headerの機能上の必要性も未確定である。
 
-- `User-Agent`: referenceのappend allowlistにも明記され、`set`候補。実機確認はなお必要。
-- `Sec-CH-UA` / `Sec-CH-UA-Mobile` / `Sec-CH-UA-Platform`: 一般`set` schema候補だがheader別保証なし。要prototype capability test。
+- `User-Agent`: CAP-H-UA **PASS**。
+- `Sec-CH-UA`: CAP-H-CH-UA **PASS**。
+- `Sec-CH-UA-Mobile`: CAP-H-CH-Mobile **PASS**。
+- `Sec-CH-UA-Platform`: CAP-H-CH-Platform **PASS**。
 
-UA-onlyで成功すればUA-CH変更不能でもGO可能。必須UA-CHがDNRで変更不能なら、consumer MV3で本方針内の同等なsupported代替は現時点で確認できず、`debugger`、service-specific spoof、invasive patchへ進まずNO-GO候補とする。
+次のgateはA/S1〜D/S1のfunctional testで最小header集合を特定すること。S1全敗時だけS2を検討し、`debugger`、service-specific spoof、invasive patchへ進まない。
 
 ## English
 
@@ -90,11 +92,11 @@ The authoritative sequence is in `IDENTITY_AB_TEST_MATRIX.md`: O controls; A1 me
 
 Record Pass/Fail/Not observed for unchanged viewport, Desktop Web, login, playback, Native Live Chat, reload, same-tab, new-tab, Quetta restart, origin scope/cleanup, and regressions on a neutral page plus three general-site classes. Treat Desktop Web and Live Chat separately and rerun controls for transient failures.
 
-DNR header `set` and `declarativeNetRequestWithHostAccess` plus optional host grants are candidates requiring Quetta validation. MAIN-world scripting is not a dedicated identity API, is page-interferable, does not cover Worker/browser metadata, and has no absolute earliest-execution guarantee. Reviewed official Extension APIs do not confirm an atomic browser-level override for `userAgentData`, high entropy, and Worker identity; CDP is excluded.
+CAP-H confirmed independent DNR `modifyHeaders`/`set` modification of all four headers on the tested Quetta device/build. Product permission design should prefer `declarativeNetRequestWithHostAccess` plus optional host grants. MAIN-world scripting is not a dedicated identity API, is page-interferable, does not cover Worker/browser metadata, and has no absolute earliest-execution guarantee. Reviewed official Extension APIs do not confirm an atomic browser-level override for `userAgentData`, high entropy, and Worker identity; CDP is excluded.
 
 ### Boundaries and Technical Gate
 
-All prohibited variables and seven GO conditions are identical to the Japanese section. Current status is **CONDITIONAL GO** because values remain unmeasured; use **NO-GO** if a required difference is unsupported or requires prohibited behavior.
+All prohibited variables and seven GO conditions are identical to the Japanese section. CAP-H is resolved for this Quetta device/build, but status remains **CONDITIONAL GO** until functional tests identify the minimum required header set and scope; use **NO-GO** if a required difference is unsupported or requires prohibited behavior.
 
 ### Primary sources
 
@@ -102,12 +104,12 @@ The six primary-source links above apply identically.
 
 ### HTTP wire observation phase
 
-Because JavaScript-visible identity was unchanged between Native and Success, the next gate is direct HTTP wire observation. Prefer DevTools Network only if Quetta exposes its tab as a USB remote-debugging target; otherwise use an ADB-reverse connection to a user-controlled local echo. Quetta support is unverified, so begin with a feasibility check. `HTTP_WIRE_IDENTITY_INVESTIGATION.md` is authoritative for steps, recording, and privacy boundaries. Do not begin a DNR prototype before observation.
+Because JavaScript-visible identity was unchanged between Native and Success, HTTP wire identity was measured directly. Quetta tab exposure as a USB remote-debugging target and DevTools Network observation are confirmed. `HTTP_WIRE_IDENTITY_INVESTIGATION.md` remains authoritative for steps, recording, and privacy boundaries.
 
 Observation confirmed remote debugging and DevTools Network on the tested Quetta build. All four initial-main-frame headers changed to Desktop Chrome/Windows, and the Success same-origin JavaScript request used the same four values. Next run A–D/S1, S2 only if necessary, followed by ablation. Chrome 154 is an experiment fixture, not a product default.
 
-### Pre-implementation DNR gate
+### DNR capability gate
 
-The official `declarativeNetRequest` reference defines `modifyHeaders` `set` generally as replacing same-name headers with a new value, while only `append` has an explicit allowlist. It does not list these four names as forbidden for `set`, but it also does not guarantee effective per-header UA-CH modification. Therefore all four are rule-schema candidates requiring CAP-H tests for registration and wire effect on Chrome/Quetta.
+CAP-H device testing showed that the tested Quetta Android device/build accepted separate rules for `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform` and changed each selected `main_frame` wire value without runtime errors. The other three headers stayed Native in every isolated test, and final OFF restoration passed. This resolves the DNR UA-CH capability concern for this environment only; it is not a guarantee for all Chromium Android browsers and does not establish functional necessity.
 
-`User-Agent` is additionally named in the append allowlist; the three `Sec-CH-UA*` fields have no per-name guarantee. If UA alone succeeds, inability to change UA-CH does not block GO. If a required UA-CH field cannot be changed with DNR, no equivalent supported consumer-MV3 alternative within scope is currently confirmed; do not use `debugger`, service spoofing, or invasive patching, and treat this as a NO-GO candidate.
+CAP-H-UA, CAP-H-CH-UA, CAP-H-CH-Mobile, and CAP-H-CH-Platform are all **PASS**. The next gate is functional A–D/S1 testing and ablation; S2 is considered only if all S1 tests fail. Do not use `debugger`, service spoofing, or invasive patching.

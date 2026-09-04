@@ -31,7 +31,7 @@ Success same-origin JavaScript requestでも4headerはSuccess `main_frame`と一
 
 experiment fixtureとしてSuccessのChrome 154値を固定し、product defaultとは分離する。値軸はA=UA、B=A+Mobile、C=B+Platform、D=C+Brands。scopeはまずS1=`main_frame`のみ。A/S1から順に、初めて成功した時点で追加を止め、各headerを一つずつ外してablationする。S1全敗時だけD/S2（same-originまで）から始め、逆ablationする。全組合せ探索はしない。
 
-成功条件: native viewport、Desktop Web、login、通常動画、Native Live Chat、基本操作。LiveFlow/NicoFlowは対象外。DNRで4headerが実効変更可能かはCAP-H gateで個別確認する。
+成功条件: native viewport、Desktop Web、login、通常動画、Native Live Chat、基本操作。LiveFlow/NicoFlowは対象外。CAP-H実機試験では4headerすべての単独DNR変更と最終OFF復帰がPASSしたため、このQuetta実機/buildのheader変更能力gateは解消した。各headerの機能上の必要性は未確定であり、次はA〜D/S1のfunctional testを行う。
 
 ## English
 
@@ -55,4 +55,4 @@ It remains unknown which headers cause Desktop Web or Native Live Chat, whether 
 
 Use the Chrome 154 Success values only as an experiment fixture, separate from a product default. Value axis: A=UA; B=A+Mobile; C=B+Platform; D=C+Brands. Scope axis starts with S1 main frame only. Stop at first success and ablate one header at a time. Only if all S1 runs fail, start D/S2 through same-origin requests and reverse-ablate. Do not exhaustively enumerate combinations.
 
-Success requires native viewport, Desktop Web, login, playback, Native Live Chat, and intact basic operation. LiveFlow/NicoFlow are excluded. CAP-H must separately confirm effective DNR modification of each header.
+Success requires native viewport, Desktop Web, login, playback, Native Live Chat, and intact basic operation. LiveFlow/NicoFlow are excluded. CAP-H device testing passed independent DNR modification of all four headers plus the final OFF restoration, resolving the header-capability gate for this Quetta device/build. Functional necessity remains unknown; A–D/S1 is next.
