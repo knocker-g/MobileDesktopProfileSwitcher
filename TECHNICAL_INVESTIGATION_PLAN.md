@@ -57,6 +57,10 @@ GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablat
 
 [`chrome.declarativeNetRequest`](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest)、[`chrome.permissions`](https://developer.chrome.com/docs/extensions/reference/api/permissions)、[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[`chrome.scripting`](https://developer.chrome.com/docs/extensions/reference/api/scripting)、[UA-CH specification](https://wicg.github.io/ua-client-hints/)、[Chrome UA-CH guide](https://developer.chrome.com/docs/privacy-security/user-agent-client-hints)。
 
+### HTTP wire観測フェーズ
+
+JavaScript-visible identityがNative/Successで不変だったため、次のgateはHTTP wireの実測とする。第一選択はQuetta tabがUSB remote debugging targetとして露出する場合のDevTools Network、fallbackはADB reverse + user管理local echoである。Quetta対応は未確認なので最初にfeasibility checkを行う。詳細手順、記録template、privacy境界は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`を正とする。観測前にDNR prototypeへ進まない。
+
 ## English
 
 ### Objective and baselines
@@ -84,3 +88,7 @@ All prohibited variables and seven GO conditions are identical to the Japanese s
 ### Primary sources
 
 The six primary-source links above apply identically.
+
+### HTTP wire observation phase
+
+Because JavaScript-visible identity was unchanged between Native and Success, the next gate is direct HTTP wire observation. Prefer DevTools Network only if Quetta exposes its tab as a USB remote-debugging target; otherwise use an ADB-reverse connection to a user-controlled local echo. Quetta support is unverified, so begin with a feasibility check. `HTTP_WIRE_IDENTITY_INVESTIGATION.md` is authoritative for steps, recording, and privacy boundaries. Do not begin a DNR prototype before observation.

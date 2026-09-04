@@ -77,6 +77,10 @@ GOはE-minが全項目を満たし、各必須要素がablationで説明され�
 
 更新後の順序はO-N/O-SのHTTP wire観測 → A1 (`User-Agent`, `main_frame`) → 必要ならA2 (same-origin scope) → wireで差が実測されたUA-CHだけを一項目ずつ追加 → E-minとする。C/D/W系列は、HTTP系列が失敗し、かつ別の証拠が得られた場合にだけ再開する。
 
+### HTTP wire記録template
+
+実測値は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`のrun sheetへ記入する。最低行はinitial `main_frame`とsame-origin subresource × `User-Agent`、`Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`。redirectが実測された場合だけredirect後`main_frame`行を追加する。`missing`（header不在）と`not observed`（request未採取）を区別する。Native/Successでunchangedなheaderはprototype候補から除外する。
+
 ## English
 
 ### Recording rules and identity matrix
@@ -112,3 +116,7 @@ Analysis of `native-01..05` and `success-01..05` found exact five-run stability 
 | HTTP high-entropy Client Hints | not observed by JSON | Cannot determine yet | Observe separately only on opted-in requests |
 
 The updated order is HTTP O-N/O-S observation, A1 (`User-Agent` on `main_frame`), A2 same-origin scope only if needed, individually adding only wire-observed UA-CH differences, then E-min. Resume C/D/W only if HTTP tests fail and new evidence justifies them.
+
+### HTTP wire recording template
+
+Record measurements in the run sheet in `HTTP_WIRE_IDENTITY_INVESTIGATION.md`. Minimum rows are initial `main_frame` and same-origin subresource, each crossed with `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform`. Add post-redirect `main_frame` rows only when a redirect is observed. Distinguish a missing header from an unobserved request. Exclude headers unchanged between Native and Success from prototype candidates.
