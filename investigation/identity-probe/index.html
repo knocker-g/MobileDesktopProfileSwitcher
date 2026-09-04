@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browser Identity Probe</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { box-sizing: border-box; max-width: 60rem; margin: 0 auto; padding: 1rem; }
+    h1 { font-size: 1.5rem; }
+    .notice { line-height: 1.5; }
+    .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .75rem; margin: 1rem 0; }
+    button { min-height: 3rem; padding: .75rem 1rem; border: 1px solid currentColor; border-radius: .5rem; font: inherit; font-weight: 650; cursor: pointer; }
+    button:focus-visible { outline: .2rem solid Highlight; outline-offset: .15rem; }
+    #status { min-height: 1.5rem; font-weight: 600; }
+    pre { min-height: 12rem; overflow: auto; padding: 1rem; border: 1px solid GrayText; border-radius: .5rem; font-size: .875rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Browser Identity Probe</h1>
+    <p class="notice">Read-only investigation tool. It does not change identity or send results anywhere.</p>
+    <div class="actions" aria-label="Probe actions">
+      <button id="run" type="button">Run Probe</button>
+      <button id="copy" type="button">Copy JSON</button>
+      <button id="download" type="button">Download JSON</button>
+    </div>
+    <p id="status" role="status" aria-live="polite">Ready.</p>
+    <pre id="output" tabindex="0" aria-label="Probe JSON output">Run the probe to collect identity data.</pre>
+  </main>
+  <script src="probe.js"></script>
+</body>
+</html>
