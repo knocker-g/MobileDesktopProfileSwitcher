@@ -10,7 +10,7 @@
 
 | 項目 | 観測方法 | Native値 | Success値 | 差分 | MV3再現 | 候補API | Desktop必要性 | Live Chat必要性 | A/B | 判定 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| HTTP `User-Agent` | DevTools、first navigation分離 | Android Chrome 148 Mobile | Windows Chrome 154 fixture | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 有力・未確定 | 候補・因果未確定 | 可 | A/S1で単独試験 |
+| HTTP `User-Agent` | DevTools、first navigation分離 | Android Chrome 148 Mobile | Windows Chrome 154 fixture | changed | CAP-H/A-S1 PASS（今回のQuetta build） | DNR `set` | 今回の条件で十分 | 今回の条件で十分 | 可 | A/S1 wire/機能/再現PASS |
 | `Sec-CH-UA` | DevTools、生値・brand順序/version保存 | Chromium/Quetta 148/Not Brand 99 | Not Brand 8/Chromium/Google Chrome 154 | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 未確定 | 未確定 | 可 | D/S1で追加 |
 | `Sec-CH-UA-Mobile` | DevTools | `?1` | `?0` | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 有力・未確定 | 未確定 | 可 | B/S1で追加 |
 | `Sec-CH-UA-Platform` | DevTools | `"Android"` | `"Windows"` | changed | CAP-H PASS（今回のQuetta build） | DNR `set` | 候補・未確定 | 候補・未確定 | 可 | C/S1で追加 |
@@ -36,7 +36,7 @@ CAP-Hにより、今回のQuetta実機/buildでは4headerの独立DNR変更が�
 |---|---|---|---|---|
 | O-N/O-S | clean baseline | なし/既存Extension ON | 実挙動を観測 | 各5回で値・差分・noise確定 |
 | CAP-H | 中立test fixture | 4headerを各1本のruleで単独変更 | localhost `main_frame`のみ | 4項目と最終OFF復帰すべて**PASS** |
-| A1 | Native | Success実測UA | `main_frame` | 単独効果。成功ならablation A1- |
+| A1 | Native | Success実測UA | `main_frame` | **PASS**。wire/全機能/fresh navigation再現/OFF復帰確認済み |
 | A2 | A1不安定時 | UAのscopeのみ | same-originへ拡張 | subresource必要性。cross-origin禁止 |
 | B1 | A最小 | 実測`Sec-CH-UA-Mobile` | 直前と同じ | 追加後B1-で除去 |
 | B2 | B1必要時 | 実測`Sec-CH-UA-Platform` | 同じ | B2- ablation |
@@ -55,7 +55,7 @@ B順序は暫定。O-N/O-Sで差がない項目は飛ばす。browserが不整�
 
 各ID×5runで、環境/version/time/network、viewport/DPR/orientation、設定値と実測identity、YouTubeのDesktop/login/playback/Live Chat/error、初回/reload/same-tab/new-tab/restart、echo+一般site 3分類、Default/revoke/rule消去後の復帰、Pass/Fail/Not observedと証拠を記録する。
 
-GOはE-minが全項目を満たし、各必須要素がablationで説明され、supported MV3 APIとoptional per-origin permissionだけで成立する場合。Worker/high entropyのinvasive patch、service client spoof、excessive permissionが必要ならNO-GO。現在は **CONDITIONAL GO**。
+YouTube A/S1はUA-onlyで全項目を満たし、OFFとの差とfresh-navigation再現を確認した。今回の実機/buildではB/C/Dを省略し、UA-onlyを製品MVP第一候補とする。一般site、lifecycle、product UA/version、CWS検証が残るため全体判定は **CONDITIONAL GO**。Worker/high entropyのinvasive patch、service client spoof、excessive permissionが必要ならNO-GO。
 
 禁止変数: youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、service-specific workaround、endpoint別identity、401/403/429起点切替、proxy/IP、randomization。
 
@@ -71,11 +71,11 @@ GOはE-minが全項目を満たし、各必須要素がablationで説明され�
 | Page high entropy全取得値 | unchanged | Probably unnecessary | 値のoverrideを試験しない |
 | Worker `userAgent`, `platform` | unchanged | Probably unnecessary | Worker patchを設計しない |
 | Worker UAData low/high entropy | unchanged | Probably unnecessary | Workerはnative identityのままSuccess成立 |
-| HTTP `User-Agent` | JSONでは未観測 | Must test | wire Native/Success差分を最優先で観測し、その後A1/A2 |
-| HTTP low-entropy UA-CH | JSONでは未観測 | Must test | `Sec-CH-UA*`をwireで実測後、差のあるfieldだけ個別試験 |
-| HTTP high-entropy Client Hints | JSONでは未観測 | Cannot determine yet | server opt-inがあるrequestでのみ別観測 |
+| HTTP `User-Agent` | A/S1 wire/機能/再現PASS | Tested minimum candidate | 今回の実機/buildではUA-onlyで成立 |
+| HTTP low-entropy UA-CH | A/S1でNative維持 | Probably unnecessary | 今回の成立条件では変更不要。将来互換性は未確定 |
+| HTTP high-entropy Client Hints | A/S1で観測分はNative維持 | Probably unnecessary | Full-Version-List/Model/Platform-Version変更なしで成立 |
 
-更新後の順序はO-N/O-SのHTTP wire観測 → A1 (`User-Agent`, `main_frame`) → 必要ならA2 (same-origin scope) → wireで差が実測されたUA-CHだけを一項目ずつ追加 → E-minとする。C/D/W系列は、HTTP系列が失敗し、かつ別の証拠が得られた場合にだけ再開する。
+O-N/O-S、CAP-H後にA1 (`User-Agent`, `main_frame`)を実施し、actual wire、全機能、fresh-navigation再現、OFF復帰がPASSしたためAで停止した。B/C/D/S2とJavaScript/Worker変更は今回実行しない。
 
 ### HTTP wire記録template
 
@@ -96,7 +96,7 @@ CAP-H実機試験ではUA、CH-UA、CH-Mobile、CH-Platformがすべて個別に
 
 提示例より`Sec-CH-UA-Mobile`とPlatformをbrandsより先にする。理由は一変数ずつDesktop/mobile・OS軸を分離し、複数brand/GREASE/versionを含むcompoundな`Sec-CH-UA`を最後に置くためであり、必要性の事実認定ではない。browserがUA-CHの不整合状態を拒否する場合だけ、失敗を記録して最小compound testへ移る。
 
-scope軸は全探索せずA/S1→B/S1→C/S1→D/S1。最初に成功した構成を各header ablationで確認する。S1全敗時だけ、D/S2から開始し、成功すれば逆ablationでheaderを削る。S2はsame-origin requestまでで、cross-originは含めない。Success baselineでS2相当の4header一致はObservedだが、S2の必要性はUnknown。
+scope軸はA/S1で停止した。A/S1はactual wireと全functional outcomeがPASSし、fresh navigationでも再現した。UA-CHとJavaScript-visible identityはNativeのままだったため、この成立条件では追加変更不要。B/C/DおよびS2は実行しない。全Chromium/将来YouTubeへの一般化はせず、`m.youtube.com`既存tab reloadは別のnavigation/host-scope課題として扱う。
 
 成功条件はnative viewport維持、Desktop Web、Google/YouTube login維持、通常動画、Native Live Chat、基本操作に明白な破綻なし。LiveFlow/NicoFlowは成功条件・依存対象にしない。
 
@@ -106,17 +106,17 @@ scope軸は全探索せずA/S1→B/S1→C/S1→D/S1。最初に成功した構�
 
 “Requires on-device observation” is unknown and must never be guessed. Label Success UI values as configured and remeasure wire/page/Worker values. Attach run ID, time, versions, context, and top-level origin; never record secrets, cookies, Authorization, or bodies.
 
-The Japanese identity table is normative. Its exact English meaning is: DevTools observation found all four wire headers changed from Native to the Success fixture—Android Chrome 148 Mobile to Windows Chrome 154 for UA, Chromium/Quetta 148 brands to Chromium/Google Chrome 154 brands, `?1` to `?0`, and `"Android"` to `"Windows"`. CAP-H independently changed each one with DNR `set` on this Quetta device/build. Test UA in A/S1, then add Mobile in B/S1, Platform in C/S1, and Brands in D/S1. This proves capability, not functional necessity or portability to other builds. Continue to measure high-entropy HTTP UA-CH only if low entropy is insufficient. No reviewed supported Extension API provides an atomic browser-level override for high-entropy or Worker identity; if either is required, it is a NO-GO candidate.
+The Japanese identity table is normative. DevTools first showed all four Success-baseline wire headers changed, and CAP-H independently changed each one with DNR `set`. A/S1 then passed wire, function, reproduction, and recovery with only UA changed; UA-CH remained Native. UA is therefore sufficient for this tested condition, while portability and future compatibility remain unknown. No reviewed supported Extension API provides an atomic browser-level override for high-entropy or Worker identity, but neither change was needed here.
 
 ### Staged tests
 
 CAP-H device testing passed independent modification of UA, CH-UA, CH-Mobile, and CH-Platform while retaining Native values for the other three headers. Final OFF restoration also passed. This resolves the UA-CH modification capability gate for the tested Quetta device/build, but functional necessity remains unknown.
 
-O-N/O-S establish five-run controls; CAP-H checks each header on a neutral origin; A1 tests measured UA on main frame; A2 changes only same-origin scope if needed; B1/B2/B3 add measured mobile/platform/brand hints separately; B4 tests one differing high-entropy header only if necessary; C1–C5 add differing legacy fields in separate runs; D1–D4 diagnose individual UAData requirements; W1 observes unmodified Worker leakage; E-min rebuilds the proven minimum. Immediately ablate each addition. Skip fields without a measured difference. Use a labeled compound low-entropy tuple only if the browser rejects intermediate states, then ablate each member.
+O-N/O-S established controls and CAP-H passed each independent header. A1 then passed actual-wire validation, every functional outcome, fresh-navigation reproduction, and OFF recovery. For this device/build the sequence stops at A with UA-only as the minimum candidate; B/C/D, S2, Window, UAData, and Worker modifications are not run. This does not generalize beyond the tested condition.
 
 ### Run sheet, gate, and boundaries
 
-For every ID×five runs record environment, viewport, configured versus measured identity, separate YouTube outcomes, lifecycle states, neutral plus three general-site classes, cleanup, and Pass/Fail/Not observed evidence. GO requires E-min to pass with every element explained by ablation and implemented only through supported MV3 APIs plus optional per-origin access. Invasive Worker/high-entropy patching, service spoofing, or excessive permission means NO-GO. Current status is **CONDITIONAL GO**.
+YouTube A/S1 passed with UA-only, including OFF contrast and fresh-navigation reproduction. It is the first product-MVP candidate for this device/build, while overall status remains **CONDITIONAL GO** pending general-site, lifecycle, product-UA/version, and CWS validation. Invasive Worker/high-entropy patching, service spoofing, or excessive permission still means NO-GO.
 
 The prohibited-variable list is identical to the Japanese section and must never be added to the matrix.
 
@@ -132,11 +132,11 @@ Analysis of `native-01..05` and `success-01..05` found exact five-run stability 
 | Page high entropy | unchanged | Probably unnecessary | Do not test value overrides |
 | Worker legacy identity | unchanged | Probably unnecessary | Do not design Worker patches |
 | Worker UAData low/high entropy | unchanged | Probably unnecessary | Success works while Worker remains native |
-| HTTP `User-Agent` | not observed by JSON | Must test | Measure wire difference first, then A1/A2 |
-| HTTP low-entropy UA-CH | not observed by JSON | Must test | Measure `Sec-CH-UA*`, then test only differing fields |
-| HTTP high-entropy Client Hints | not observed by JSON | Cannot determine yet | Observe separately only on opted-in requests |
+| HTTP `User-Agent` | A/S1 wire/function/reproduction passed | Tested minimum candidate | UA-only succeeded on this device/build |
+| HTTP low-entropy UA-CH | Remained Native in A/S1 | Probably unnecessary | No change needed for this success condition; future compatibility unknown |
+| HTTP high-entropy Client Hints | Observed fields remained Native in A/S1 | Probably unnecessary | Success without changing Full-Version-List, Model, or Platform-Version |
 
-The updated order is HTTP O-N/O-S observation, A1 (`User-Agent` on `main_frame`), A2 same-origin scope only if needed, individually adding only wire-observed UA-CH differences, then E-min. Resume C/D/W only if HTTP tests fail and new evidence justifies them.
+After O-N/O-S and CAP-H, A1 (`User-Agent` on `main_frame`) passed actual wire, all functions, fresh-navigation reproduction, and OFF recovery, so testing stopped at A. B/C/D/S2 and JavaScript/Worker changes are not run for this condition.
 
 ### HTTP wire recording template
 
@@ -146,6 +146,6 @@ Record measurements in the run sheet in `HTTP_WIRE_IDENTITY_INVESTIGATION.md`. M
 
 Because all four initial-main-frame headers changed, use the proven Chrome 154 values as an experiment fixture, not a product default. Add one header at a time: A=`User-Agent`; B=A+`Sec-CH-UA-Mobile`; C=B+`Sec-CH-UA-Platform`; D=C+`Sec-CH-UA`. Mobile and platform precede the compound brands/GREASE/version field to isolate simpler desktop/mobile and OS axes; this ordering is a test-design choice, not proof of necessity. Use a labeled compound test only if the browser rejects inconsistent UA-CH states.
 
-Avoid exhaustive scope combinations: run A/S1 through D/S1 and stop at first success, then ablate each header. Only if all S1 tests fail, begin with D/S2 and remove headers through reverse ablation. S2 includes same-origin requests only. Success showed equal four-header identity on main frame and same-origin JavaScript, but S2 necessity remains Unknown.
+The sequence stopped at A/S1 after actual-wire and full functional PASS plus fresh-navigation reproduction. UA-CH and JavaScript-visible identity remained Native, so no B/C/D or S2 run is needed for this success condition. Do not generalize beyond the tested device/build and YouTube behavior. Existing `m.youtube.com` tab reload is a separate navigation/host-scope issue, not a UA-only failure.
 
 Success requires retained native viewport, Desktop Web, Google/YouTube login, normal playback, Native Live Chat, and no obvious breakage in basic operation. LiveFlow/NicoFlow are neither success criteria nor dependencies.

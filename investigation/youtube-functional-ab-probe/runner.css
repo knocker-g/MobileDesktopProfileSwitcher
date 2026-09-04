@@ -1,0 +1,86 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+input,
+button {
+  box-sizing: border-box;
+  min-height: 48px;
+  font: inherit;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.manual-mode {
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+
+.mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.mode-buttons button[aria-pressed="true"] {
+  color: Canvas;
+  background: CanvasText;
+}
+
+.current-mode {
+  margin-bottom: 0;
+  font-weight: 700;
+}
+
+button {
+  padding: 10px 18px;
+  font-weight: 700;
+}
+
+progress {
+  width: 100%;
+  min-height: 20px;
+}
+
+pre {
+  overflow: auto;
+  min-height: 240px;
+  padding: 16px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notice {
+  font-weight: 700;
+}
+
+.hint {
+  opacity: 0.8;
+}

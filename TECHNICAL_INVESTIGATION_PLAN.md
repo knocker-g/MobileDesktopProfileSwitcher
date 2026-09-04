@@ -26,7 +26,7 @@ Sony Xperia 1 V の Quetta Android で native narrow viewport を維持し、一
 詳細は `IDENTITY_AB_TEST_MATRIX.md` を正とする。一度に一変数を原則とし、不可避な整合 tuple は compound test と明記して直後に ablation する。
 
 - O-N/O-S: 無変更の Native/Success を観測。
-- A1: Successで実測した `User-Agent` を `main_frame` のみに設定。
+- A1: Successで実測した `User-Agent` を`www.youtube.com`の`main_frame`のみに設定。今回の実機/buildでwire・全機能・fresh-navigation再現・OFF復帰が**PASS**。
 - A2: A1が不安定な場合だけ、同じ値を same-origin request へ拡張（値でなくscopeの試験）。
 - B系列: CAP-Hで独立変更可能と実証済みのlow-entropy UA-CHを一項目ずつ追加。順序は `Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform`、`Sec-CH-UA` とする。
 - C系列: HTTPだけで不足する場合のみ、差のある legacy `navigator` propertyを一つずつ追加。`vendor`/`product`が同値なら省略。
@@ -51,7 +51,7 @@ DNR `modifyHeaders`/`set` による4headerの独立変更は、今回のQuetta�
 
 youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、endpoint別identity、HTTP error起点切替、proxy/IP、randomization、service-specific workaround、unsupported API、Worker constructor hook、広範prototype patch、remote codeを扱わない。
 
-GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。CAP-H能力gateは今回のQuetta実機/buildで解消したが、機能上必要な最小header/scopeは未確定のため現在は **CONDITIONAL GO**。必須差分がsupported APIで再現不能または禁止変更が必要なら **NO-GO**。
+GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。YouTube A/S1はUA-onlyで(1)〜(5)の対象条件を満たした。一般site、lifecycle、product UA/version、CWS評価が残るため現在は **CONDITIONAL GO**。
 
 ### 一次資料
 
@@ -61,7 +61,7 @@ GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablat
 
 JavaScript-visible identityがNative/Successで不変だったためHTTP wireを実測した。Quetta tabのUSB remote debugging target公開とDevTools Network観測は確認済みで、詳細手順、記録template、privacy境界は`HTTP_WIRE_IDENTITY_INVESTIGATION.md`を正とする。
 
-実測により、対象Quetta buildのremote debuggingとDevTools Network利用は確認済み。initial `main_frame`の4headerはすべてDesktop Chrome/Windowsへchangedし、Success same-origin JavaScript requestも同じ4値だった。次段はA〜D/S1、必要時のみS2、成功構成のablationとする。Chrome 154はexperiment fixtureでありproduct defaultではない。
+実測により、対象Quetta buildのremote debuggingとDevTools Network利用は確認済み。initial `main_frame`の4headerはすべてDesktop Chrome/Windowsへchangedし、Success same-origin JavaScript requestも同じ4値だった。その後A/S1がUA-onlyで成立・再現したためAで停止した。Chrome 154はexperiment fixtureでありproduct defaultではない。
 
 ### DNR capability gate
 
@@ -72,7 +72,7 @@ CAP-H実機試験により、対象Quetta Android実機/buildでは`User-Agent`�
 - `Sec-CH-UA-Mobile`: CAP-H-CH-Mobile **PASS**。
 - `Sec-CH-UA-Platform`: CAP-H-CH-Platform **PASS**。
 
-次のgateはA/S1〜D/S1のfunctional testで最小header集合を特定すること。S1全敗時だけS2を検討し、`debugger`、service-specific spoof、invasive patchへ進まない。
+A/S1はactual wire、Desktop Web、native viewport、login、動画再生、Native Live Chat、chat入力、fresh-navigation再現、OFF recoveryが**PASS**した。UA-CHとPage/Worker identityはNativeのまま成立したため、今回のincremental試験はAで停止しB/C/D/S2は不要。UA-onlyを製品MVP第一候補とするが、Chrome 154はproduct defaultではない。`m.youtube.com`既存tab reloadは別のcanonicalization/navigation/host-scope課題として残す。
 
 ## English
 
@@ -86,7 +86,7 @@ Native fixes the same device/Quetta with Desktop Site OFF, User-Agent Switcher a
 
 Alternate Native/Success for five fresh-tab runs each. Use a neutral HTTPS first-party echo/test page for HTTP, Window, and Dedicated Worker; record Shared/Service Workers separately when available. Separate main-frame, same-origin, cross-origin, redirect, and first-request observations. On YouTube collect identity and outcomes only. Never guess versions, brand order/GREASE, or platform versions.
 
-The authoritative sequence is in `IDENTITY_AB_TEST_MATRIX.md`: O controls; A1 measured Success UA on main frame; A2 same-origin scope only if required; B adds only differing low-entropy hints individually; C adds only differing legacy Window fields if HTTP is insufficient; D diagnoses `userAgentData`, high entropy, and Worker necessity; E-min rebuilds only the proven minimum. Use one variable per test, label unavoidable tuples as compound, immediately ablate, and stop when all outcomes pass.
+The authoritative sequence is in `IDENTITY_AB_TEST_MATRIX.md`. A1 set only the measured Success UA on the `www.youtube.com` main frame and passed wire validation, all functional outcomes, fresh-navigation reproduction, and OFF recovery on this device/build. The sequence therefore stopped at A; B/C/D/S2 and JavaScript/Worker changes were not needed for this success condition.
 
 ### Outcomes and MV3 capability
 
@@ -96,7 +96,7 @@ CAP-H confirmed independent DNR `modifyHeaders`/`set` modification of all four h
 
 ### Boundaries and Technical Gate
 
-All prohibited variables and seven GO conditions are identical to the Japanese section. CAP-H is resolved for this Quetta device/build, but status remains **CONDITIONAL GO** until functional tests identify the minimum required header set and scope; use **NO-GO** if a required difference is unsupported or requires prohibited behavior.
+All prohibited variables and seven GO conditions are identical to the Japanese section. YouTube A/S1 satisfies the relevant first five conditions with UA-only on this device/build. Overall status remains **CONDITIONAL GO** pending general-site, lifecycle, product-UA/version, and CWS validation.
 
 ### Primary sources
 
@@ -106,10 +106,10 @@ The six primary-source links above apply identically.
 
 Because JavaScript-visible identity was unchanged between Native and Success, HTTP wire identity was measured directly. Quetta tab exposure as a USB remote-debugging target and DevTools Network observation are confirmed. `HTTP_WIRE_IDENTITY_INVESTIGATION.md` remains authoritative for steps, recording, and privacy boundaries.
 
-Observation confirmed remote debugging and DevTools Network on the tested Quetta build. All four initial-main-frame headers changed to Desktop Chrome/Windows, and the Success same-origin JavaScript request used the same four values. Next run A–D/S1, S2 only if necessary, followed by ablation. Chrome 154 is an experiment fixture, not a product default.
+Observation confirmed remote debugging and DevTools Network on the tested Quetta build. All four initial-main-frame headers changed to Desktop Chrome/Windows, and the Success same-origin JavaScript request used the same four values. A/S1 subsequently succeeded and reproduced with UA-only, so the sequence stopped at A. Chrome 154 is an experiment fixture, not a product default.
 
 ### DNR capability gate
 
 CAP-H device testing showed that the tested Quetta Android device/build accepted separate rules for `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform` and changed each selected `main_frame` wire value without runtime errors. The other three headers stayed Native in every isolated test, and final OFF restoration passed. This resolves the DNR UA-CH capability concern for this environment only; it is not a guarantee for all Chromium Android browsers and does not establish functional necessity.
 
-CAP-H-UA, CAP-H-CH-UA, CAP-H-CH-Mobile, and CAP-H-CH-Platform are all **PASS**. The next gate is functional A–D/S1 testing and ablation; S2 is considered only if all S1 tests fail. Do not use `debugger`, service spoofing, or invasive patching.
+CAP-H-UA, CAP-H-CH-UA, CAP-H-CH-Mobile, and CAP-H-CH-Platform are all **PASS**. A/S1 subsequently passed actual wire, Desktop Web, native viewport, login, playback, Native Live Chat, chat input, fresh-navigation reproduction, and OFF recovery. UA-CH and Page/Worker identity stayed Native, so the incremental sequence stops at A and UA-only becomes the first product-MVP candidate. Chrome 154 is not a product default. Existing `m.youtube.com` reload behavior remains a separate canonicalization/navigation/host-scope issue.

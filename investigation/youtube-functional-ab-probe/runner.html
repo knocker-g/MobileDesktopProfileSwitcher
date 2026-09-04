@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube Functional A/B Test Runner</title>
+  <link rel="stylesheet" href="runner.css">
+</head>
+<body>
+  <main>
+    <h1>YouTube Functional A/B Test Runner</h1>
+    <p class="notice">調査専用。actual wire headerは取得しません。Cookie・認証情報は読み取りません。</p>
+
+    <label for="live-url">YouTube Live URL（任意）</label>
+    <input id="live-url" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" spellcheck="false">
+    <p class="hint">未入力時はhomepageでV/D/Lを収集し、Live ChatはNOT_TESTEDになります。URL自体やvideo IDは結果へ保存しません。</p>
+
+    <div class="actions">
+      <button id="run-all" type="button">Run All Tests</button>
+      <button id="copy-result" type="button" disabled>Copy Result JSON</button>
+    </div>
+
+    <section class="manual-mode" aria-labelledby="manual-mode-heading">
+      <h2 id="manual-mode-heading">Manual Mode</h2>
+      <p>Modeを固定するだけです。navigationは自動実行しません。</p>
+      <div class="mode-buttons" role="group" aria-label="Manual DNR mode">
+        <button type="button" data-mode="OFF">OFF</button>
+        <button type="button" data-mode="A">A</button>
+        <button type="button" data-mode="B">B</button>
+        <button type="button" data-mode="C">C</button>
+        <button type="button" data-mode="D">D</button>
+      </div>
+      <p id="current-mode" class="current-mode" aria-live="polite">Current mode: checking…</p>
+    </section>
+
+    <p id="status" role="status" aria-live="polite">Ready</p>
+    <progress id="progress" max="6" value="0"></progress>
+
+    <h2>Result JSON</h2>
+    <pre id="result">No result yet.</pre>
+  </main>
+  <script src="runner.js"></script>
+</body>
+</html>
