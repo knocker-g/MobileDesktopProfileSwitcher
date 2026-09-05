@@ -15,3 +15,22 @@ export {
   validateSiteCollection,
   validateSiteId,
 } from "./sites.js";
+export {
+  RECOVERY_ACTION,
+  decideStartupRecovery,
+  recoverAtStartup,
+} from "./recovery.js";
+export {
+  CURRENT_SCHEMA_VERSION,
+  OPERATION_KIND,
+  SCHEMA_STATUS,
+  classifySchemaVersion,
+  configurationOf,
+  createDefaultState,
+  createPendingMutation,
+  inspectPersistedState,
+  stateWithPending,
+  validatePersistedState,
+} from "./storage-schema.js";
+export { createMutationExecutor } from "./transaction.js";
+export { TRANSACTION_ERROR, TransactionError } from "./transaction-error.js";

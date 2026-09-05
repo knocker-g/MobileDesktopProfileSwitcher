@@ -25,6 +25,8 @@ host entryの`ruleId`をstable positive integerとしてstorageに保存する�
 
 起動、install/update、storage transaction完了、permission変更検出、Global ON時にreconcileする。
 
+Phase 3の`derivedState` portは将来のreconcileを注入する境界にすぎず、DNR rule生成やChrome API呼出しを実装しない。`apply`、`rollback`、`failClosed`をfakeで検証し、実rule modelはPhase 5で接続する。
+
 1. schemaとstorageを検証する。
 2. browserのactual permissionsを確認する。
 3. enabled/profile/permissionからdesired rule setを純粋生成する。
@@ -61,6 +63,8 @@ Persist each host entry's `ruleId` as a stable positive integer. Allocate monoto
 ### Reconciliation
 
 Reconcile on startup, install/update, successful storage transaction, detected permission change, and Global ON: validate schema/storage; inspect actual browser permissions; purely derive the desired set; read actual dynamic rules; replace them with one `updateDynamicRules({removeRuleIds, addRules})` call; then reread and verify IDs, conditions, and header values.
+
+The Phase 3 `derivedState` port is only an injection boundary for future reconciliation; it implements neither DNR rule generation nor Chrome API calls. Tests use fake `apply`, `rollback`, and `failClosed` operations, and Phase 5 will connect the actual rule model.
 
 Global OFF removes every actual dynamic rule while preserving storage and permissions. Global ON regenerates from storage. Default hosts, permission-missing hosts, and invalid schemas generate no rule. Because the MVP creates only dynamic rules, all dynamic rules owned by this extension are managed. Product MVP uses no static or session rules.
 

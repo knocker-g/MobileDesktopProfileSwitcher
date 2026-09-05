@@ -43,6 +43,18 @@ transactionの状態遷移、journal判定、rollback/recovery decisionはpure c
 
 Phase 2ではstorage非依存のSite collection validationとimmutable add/update/removeだけを実装した。これらはpersistやrevisionを変更せず、Phase 3 transaction coreがcommit candidateを作るために利用する。Phase 2 operationの結果をstorage成功と解釈してはならない。
 
+### Phase 3実装契約
+
+Phase 3のpure coreは、adapterが読み書きする論理aggregateを`{ schemaVersion, revision, enabled, nextRuleId, sites, pendingMutation }`として扱う。現在schemaは`1`、defaultはrevision `0`、enabled、空sites、nextRuleId `1`、journalなしである。生成・検証結果はdeep immutableで、default factoryは呼出しごとに新しい値を返す。将来の`chrome.storage.local` adapterはconfigurationとjournalを物理keyへ写像できるが、coreの原子的snapshot契約を守らなければならない。
+
+journalは`mutationId`、`baseRevision`、`nextRevision`、`operationKind`、canonicalな`nextState`を持つ。`nextRevision`は必ず`baseRevision + 1`である。mutationは単一Promise queueで直列化し、読取revisionと`expectedRevision`が一致しなければwriteやderived apply前に`stale_revision`で拒否する。正常系は旧configuration＋journalの保存、derived state適用、next configuration＋journalの保存、journal clearの順で完了する。
+
+derived applyまたはnext configuration保存が失敗した場合、old derived stateとold configurationへのrollbackを試みる。rollbackも失敗した場合は`rollback_failure`としてfail closedを要求し、残存raw state/journalを上書きしない。commit後のjournal clearだけが失敗した場合はnext revisionとjournalを残し、startupでcommit済みと判定できる。
+
+startup decisionは、journalなしならcurrent configurationをreconcileし、current revisionがjournalのbaseならrollback、journalのnext revisionかつnextStateと一致すればcommit finalizationを行う。それ以外の関係、corrupt current schema、older/unknown/newer schemaはfail closedであり、raw stateを保存する。Phase 3はmigrationを実装せず、schema分類だけを提供する。
+
+storage portは`readState()`/`writeState()`、derived-state portは`apply()`/`rollback()`/`failClosed()`の最小境界である。Phase 3ではin-memory fakeのみを実装し、Chrome API、DNR生成、permission、health永続化は実装しない。mutation IDは注入するが、Site ID生成とrule ID allocationは後続Phaseに残す。
+
 ## English
 
 ### Keys and authority
@@ -76,3 +88,15 @@ Always reconcile at startup, extension update, and UI open in one direction: sto
 Keep transaction transitions, journal decisions, and rollback/recovery decisions in the pure core, with injectable storage/DNR/permission adapters. Level 1 uses fakes to cover every failure point, Level 2 performs one actual `chrome.storage.local` and DNR read-back/reconcile run, and only restoration after a real extension reload remains in the one Level 3 manual smoke.
 
 Phase 2 implements only storage-independent Site-collection validation and immutable add/update/remove. They neither persist nor change a revision; the Phase 3 transaction core will use them to build commit candidates. Never interpret a Phase 2 operation result as a successful storage commit.
+
+### Phase 3 implementation contract
+
+The Phase 3 pure core treats the adapter snapshot as one logical aggregate: `{ schemaVersion, revision, enabled, nextRuleId, sites, pendingMutation }`. The current schema is `1`; its default is revision `0`, enabled, no Sites, next rule ID `1`, and no journal. Produced and validated values are deeply immutable, and the default factory returns a fresh value on every call. A future `chrome.storage.local` adapter may map configuration and journal to physical keys, but it must preserve the core's atomic-snapshot contract.
+
+The journal contains `mutationId`, `baseRevision`, `nextRevision`, `operationKind`, and canonical `nextState`; `nextRevision` must equal `baseRevision + 1`. One Promise queue serializes mutations. A mismatch between the read revision and `expectedRevision` produces `stale_revision` before any write or derived apply. The successful sequence persists old configuration plus journal, applies derived state, persists next configuration plus journal, and clears the journal.
+
+If derived apply or next-configuration persistence fails, the coordinator attempts to restore both old derived state and old configuration. If rollback also fails, it requests fail closed, returns `rollback_failure`, and does not overwrite the remaining raw state or journal. If only post-commit journal cleanup fails, the next revision and journal remain so startup can recognize a committed transaction.
+
+At startup, no journal means reconcile current configuration; a current revision equal to the journal base means rollback; and a revision equal to the journal next revision with matching `nextState` means finalize the commit. Every other relation, a corrupt current schema, and an older/unknown/newer schema fail closed while preserving raw state. Phase 3 classifies schemas but implements no migration.
+
+The storage port is the minimal `readState()`/`writeState()` boundary, and the derived-state port is `apply()`/`rollback()`/`failClosed()`. Phase 3 supplies in-memory fakes only; it does not implement Chrome APIs, DNR generation, permissions, or persisted health. Mutation ID creation is injected; Site ID generation and rule-ID allocation remain for later phases.

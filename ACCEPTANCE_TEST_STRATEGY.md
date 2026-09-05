@@ -23,6 +23,8 @@ Phase 1以降の標準入口を`npm run verify`とする。外部dependencyを�
 
 Phase 2時点ではhost security case、IDN/punycode、Site/profile/ID/rule ID、Site内・Site間duplicate、immutable CRUDをNode unit testへ統合済みである。Chrome API testやmanual checkはまだ実行しない。
 
+Phase 3ではdefault/clone safety、schema分類、Phase 2 Site validation再利用、journal整合、正常commit、stale revision、各write failure、derived apply/rollback failure、残存journalのstartup decision、fail closed、同時mutation直列化とlost update防止をin-memory fakeで自動検証する。Chrome APIや人間確認は含めない。
+
 ### Level 2 — PC Chrome Integration Runner
 
 production manifestへtest権限を追加せず、unpacked development packageにだけ含めるtest page/runnerを用いる。`Run PC Acceptance Test`の1回のuser gestureから、入力済みのexact fixture hostについてpermission requestを直ちに開始する。ユーザー操作はbrowser promptの許可1回だけで、そのcallback後は次を直列実行する。
@@ -93,6 +95,8 @@ From Phase 1 onward, `npm run verify` is the canonical entry point. With no exte
 DNR checks require one exact-host rule, `main_frame` only, `modifyHeaders`, and exactly one `User-Agent` `set`, with no UA-CH, subresource, wildcard, or redirect. State tests cover zero rules under Global OFF, storage regeneration under ON, no rule for Default/missing permission, edit/delete diffs, stable IDs, idempotent reconcile, fail-closed schema mismatch, rollback/journal recovery, cleanup warnings, and rule-limit preflight. Finish with `git diff --check`; any failure exits nonzero and blocks later levels. Production and tests import the same pure functions, and Chrome globals remain behind fakeable adapters.
 
 At Phase 2, Node unit tests already cover hostile host cases, IDN/punycode, Site/profile/ID/rule IDs, within-Site and cross-Site duplicates, and immutable CRUD. Chrome API tests and manual checks have not started.
+
+At Phase 3, in-memory fakes automatically cover defaults and clone safety, schema classification, reuse of Phase 2 Site validation, journal consistency, normal commits, stale revisions, each write failure, derived apply/rollback failures, startup decisions for residual journals, fail closed, serialized concurrent mutations, and lost-update prevention. No Chrome API or human check is involved.
 
 ### Level 2 — PC Chrome Integration Runner
 
