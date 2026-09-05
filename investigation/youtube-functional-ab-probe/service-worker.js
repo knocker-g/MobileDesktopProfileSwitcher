@@ -1,7 +1,8 @@
 "use strict";
 
 const RULE_ID = 1;
-const TARGET_URL_FILTER = "|https://www.youtube.com/";
+const WWW_TARGET_URL_FILTER = "|https://www.youtube.com/";
+const A_DUAL_HOST_REGEX_FILTER = "^https://(www\\.youtube\\.com|m\\.youtube\\.com)/";
 
 const FIXTURE = Object.freeze({
   userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
@@ -26,6 +27,9 @@ const MODES = Object.freeze([
 ]);
 
 function ruleFor(mode) {
+  const targetCondition = mode.id === "A"
+    ? { regexFilter: A_DUAL_HOST_REGEX_FILTER }
+    : { urlFilter: WWW_TARGET_URL_FILTER };
   return {
     id: RULE_ID,
     priority: 1,
@@ -34,7 +38,7 @@ function ruleFor(mode) {
       requestHeaders: mode.headers,
     },
     condition: {
-      urlFilter: TARGET_URL_FILTER,
+      ...targetCondition,
       resourceTypes: ["main_frame"],
     },
   };

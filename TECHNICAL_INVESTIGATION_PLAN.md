@@ -72,7 +72,7 @@ CAP-H実機試験により、対象Quetta Android実機/buildでは`User-Agent`�
 - `Sec-CH-UA-Mobile`: CAP-H-CH-Mobile **PASS**。
 - `Sec-CH-UA-Platform`: CAP-H-CH-Platform **PASS**。
 
-A/S1はactual wire、Desktop Web、native viewport、login、動画再生、Native Live Chat、chat入力、fresh-navigation再現、OFF recoveryが**PASS**した。UA-CHとPage/Worker identityはNativeのまま成立したため、今回のincremental試験はAで停止しB/C/D/S2は不要。UA-onlyを製品MVP第一候補とするが、Chrome 154はproduct defaultではない。`m.youtube.com`既存tab reloadは別のcanonicalization/navigation/host-scope課題として残す。
+A/S1はactual wire、Desktop Web、native viewport、login、動画再生、Native Live Chat、chat入力、fresh-navigation再現、OFF recoveryが**PASS**した。さらに`www.youtube.com`と`m.youtube.com`の明示的2hostへUA-only `main_frame` ruleを適用すると、既存Mobile tabの通常reloadでも同じ機能が成立し、YouTube自身がdesktop URLへ移行した。UA-CHとPage/Worker identityはNativeのまま。B/C/D/S2、Extension側canonicalization/強制navigationは不要。UA-only multi-host site profileを製品MVP第一候補とするが、Chrome 154はproduct defaultではない。
 
 ## English
 
@@ -112,4 +112,4 @@ Observation confirmed remote debugging and DevTools Network on the tested Quetta
 
 CAP-H device testing showed that the tested Quetta Android device/build accepted separate rules for `User-Agent`, `Sec-CH-UA`, `Sec-CH-UA-Mobile`, and `Sec-CH-UA-Platform` and changed each selected `main_frame` wire value without runtime errors. The other three headers stayed Native in every isolated test, and final OFF restoration passed. This resolves the DNR UA-CH capability concern for this environment only; it is not a guarantee for all Chromium Android browsers and does not establish functional necessity.
 
-CAP-H-UA, CAP-H-CH-UA, CAP-H-CH-Mobile, and CAP-H-CH-Platform are all **PASS**. A/S1 subsequently passed actual wire, Desktop Web, native viewport, login, playback, Native Live Chat, chat input, fresh-navigation reproduction, and OFF recovery. UA-CH and Page/Worker identity stayed Native, so the incremental sequence stops at A and UA-only becomes the first product-MVP candidate. Chrome 154 is not a product default. Existing `m.youtube.com` reload behavior remains a separate canonicalization/navigation/host-scope issue.
+CAP-H-UA, CAP-H-CH-UA, CAP-H-CH-Mobile, and CAP-H-CH-Platform are all **PASS**. A/S1 passed wire and every functional outcome. The same UA-only main-frame rule on the explicit `www.youtube.com` plus `m.youtube.com` host set also passed an existing-Mobile-tab reload, after which YouTube moved itself to the desktop URL. UA-CH and Page/Worker identity stayed Native. A UA-only multi-host site profile is the first product-MVP candidate; B/C/D/S2 and extension-side canonicalization/forced navigation are unnecessary for this YouTube condition. Chrome 154 is not a product default.

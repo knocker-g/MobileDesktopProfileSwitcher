@@ -46,9 +46,13 @@ actual wire上でもUAはWindows Chrome 154、UA-CHはQuetta/Android/Mobileと�
 
 これは全Chromium browser、他Quetta build、将来のYouTube、一般Web、または任意のChrome versionへ一般化しない。製品既定UA/version、lifecycle、general-site compatibility、CWS方針は別途検証する。
 
-### Separate issue: `m.youtube.com`
+### Observed: explicit multi-host A/S1
 
-Native Mobile状態の既存`m.youtube.com` tabでは、Aを有効化して単純reloadしても`www.youtube.com`限定DNR ruleが適用されずMobile Webのままだった。これはUA-only identityの失敗ではなく、host canonicalization、profile切替時navigation、host scopeに関する別のUX/architecture課題である。今回、製品コードで解決せず独立課題として残す。
+A/S1の対象を`www.youtube.com`と`m.youtube.com`の明示的2hostへ限定拡張し、両方とも`main_frame`の`User-Agent`だけを変更した。Native Mobile状態で開いた既存`m.youtube.com` watch tabを保持し、Manual Aを有効化して同じtabを通常reloadした。
+
+PC DevToolsで`m.youtube.com`のmain document requestにWindows Chrome 154 fixtureの`User-Agent`が適用されたことを確認した。Desktop Web、native narrow viewport、動画再生、Native Live Chat、chat入力がすべて**PASS**し、old-browser warningはなかった。その後YouTube自身が`www.youtube.com`のdesktop watch URLへ移行した。ExtensionはURL rewrite、navigation、redirectを実行していない。
+
+従って今回の実機/buildのYouTubeでは、`www.youtube.com`と`m.youtube.com`を同一Desktop Profileの明示host集合とし、両hostの`main_frame`へUA-only ruleを適用する構成が成立した。Extension側canonicalizationや強制navigationは不要だった。これはYouTube固有のObserved resultであり、他siteへ一般化しない。
 
 ### Diagnostics corrections
 
@@ -76,9 +80,13 @@ For this device/build and YouTube test condition, OFF versus reproducible A/S1 e
 
 Do not generalize this to all Chromium browsers, other builds, future YouTube behavior, general websites, or a product-default Chrome version. Product UA/version choice, lifecycle behavior, general-site compatibility, and CWS alignment remain separate gates.
 
-### Separate `m.youtube.com` issue
+### Observed explicit multi-host A/S1
 
-Reloading an existing Native Mobile `m.youtube.com` tab after enabling A did not match the `www.youtube.com`-only DNR rule and remained Mobile Web. This is not a UA-only identity failure; it is a separate host-canonicalization, profile-switch navigation, and host-scope UX/architecture issue. No product-code solution is implemented here.
+A/S1 was narrowly extended to the two explicit hosts `www.youtube.com` and `m.youtube.com`, modifying only `User-Agent` on `main_frame`. A Native Mobile `m.youtube.com` watch tab was retained, Manual A was enabled, and that same tab was normally reloaded.
+
+Desktop DevTools confirmed the Windows Chrome 154 fixture UA on the `m.youtube.com` main document request. Desktop Web, native narrow viewport, playback, Native Live Chat, and chat input all passed with no old-browser warning. YouTube itself subsequently moved to its desktop watch URL on `www.youtube.com`; the extension performed no URL rewrite, navigation, or redirect.
+
+For YouTube on this device/build, one Desktop Profile can therefore bind the explicit host set `www.youtube.com` plus `m.youtube.com` and apply a UA-only main-frame rule on both. Extension-side canonicalization or forced navigation was unnecessary. This is a YouTube-specific observed result and is not generalized to other sites.
 
 ### Diagnostics corrections
 

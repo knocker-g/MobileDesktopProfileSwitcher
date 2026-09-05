@@ -96,7 +96,7 @@ CAP-H実機試験ではUA、CH-UA、CH-Mobile、CH-Platformがすべて個別に
 
 提示例より`Sec-CH-UA-Mobile`とPlatformをbrandsより先にする。理由は一変数ずつDesktop/mobile・OS軸を分離し、複数brand/GREASE/versionを含むcompoundな`Sec-CH-UA`を最後に置くためであり、必要性の事実認定ではない。browserがUA-CHの不整合状態を拒否する場合だけ、失敗を記録して最小compound testへ移る。
 
-scope軸はA/S1で停止した。A/S1はactual wireと全functional outcomeがPASSし、fresh navigationでも再現した。UA-CHとJavaScript-visible identityはNativeのままだったため、この成立条件では追加変更不要。B/C/DおよびS2は実行しない。全Chromium/将来YouTubeへの一般化はせず、`m.youtube.com`既存tab reloadは別のnavigation/host-scope課題として扱う。
+scope軸はA/S1で停止した。A/S1はactual wireと全functional outcomeがPASSし、fresh navigationでも再現した。さらに`www.youtube.com`と`m.youtube.com`の明示的2hostへ同じUA-only `main_frame` ruleを適用すると、既存Mobile tabの通常reloadでも全機能がPASSし、YouTube自身がdesktop URLへ移行した。UA-CHとJavaScript-visible identityはNativeのまま。B/C/D、S2、Extension側URL rewriteは実行しない。
 
 成功条件はnative viewport維持、Desktop Web、Google/YouTube login維持、通常動画、Native Live Chat、基本操作に明白な破綻なし。LiveFlow/NicoFlowは成功条件・依存対象にしない。
 
@@ -146,6 +146,6 @@ Record measurements in the run sheet in `HTTP_WIRE_IDENTITY_INVESTIGATION.md`. M
 
 Because all four initial-main-frame headers changed, use the proven Chrome 154 values as an experiment fixture, not a product default. Add one header at a time: A=`User-Agent`; B=A+`Sec-CH-UA-Mobile`; C=B+`Sec-CH-UA-Platform`; D=C+`Sec-CH-UA`. Mobile and platform precede the compound brands/GREASE/version field to isolate simpler desktop/mobile and OS axes; this ordering is a test-design choice, not proof of necessity. Use a labeled compound test only if the browser rejects inconsistent UA-CH states.
 
-The sequence stopped at A/S1 after actual-wire and full functional PASS plus fresh-navigation reproduction. UA-CH and JavaScript-visible identity remained Native, so no B/C/D or S2 run is needed for this success condition. Do not generalize beyond the tested device/build and YouTube behavior. Existing `m.youtube.com` tab reload is a separate navigation/host-scope issue, not a UA-only failure.
+The sequence stopped at A/S1 after actual-wire and full functional PASS plus fresh-navigation reproduction. Applying the same UA-only main-frame rule to the explicit `www.youtube.com` and `m.youtube.com` host set also passed an existing-Mobile-tab reload; YouTube itself moved to its desktop URL. UA-CH and JavaScript identity remained Native, so no B/C/D, S2, or extension URL rewrite is needed for this YouTube condition. Do not generalize to other sites.
 
 Success requires retained native viewport, Desktop Web, Google/YouTube login, normal playback, Native Live Chat, and no obvious breakage in basic operation. LiveFlow/NicoFlow are neither success criteria nor dependencies.

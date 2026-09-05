@@ -7,7 +7,8 @@
     "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
-    "https://www.youtube.com/*"
+    "https://www.youtube.com/*",
+    "https://m.youtube.com/*"
   ],
   "background": {
     "service_worker": "service-worker.js"
