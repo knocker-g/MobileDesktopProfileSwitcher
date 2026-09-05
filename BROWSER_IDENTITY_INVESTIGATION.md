@@ -4,7 +4,7 @@
 
 ### 結論
 
-通常 navigation を Desktop Chrome として認識させる最小候補は、許可 origin に対する `User-Agent` request header の固定値化である。ただし UA-CH と JavaScript-visible identity が Android を示し続ける可能性があり、YouTube Desktop Web + Native Live Chat の成立条件は未確定。専用の「browser profile override」Extension API はないため、現時点は CONDITIONAL GO とする。
+通常navigationをDesktop/Mobileとして認識させる検証済み最小候補は、許可hostの`main_frame`に対する`User-Agent` request headerの設定である。YouTube実測ではUA-CHとJavaScript-visible identityを変更せず、Desktop Web + Native Live Chat、および逆方向のMobile Web + 動画再生がそれぞれ成立した。これはYouTube固有のObserved resultであり一般化しない。製品UAは同一milestoneの検証済みProfile Setとして管理し、最初の製品Setと一般互換性が未確定のためCONDITIONAL GOとする。
 
 | 項目 | 表すもの | 標準 Extension 手段 | MV3 | 初期判断 |
 |---|---|---|---|---|
@@ -34,7 +34,7 @@ UA-CH は `Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform` と `navigator
 
 ### 最小 A/B test
 
-同一端末・同一 account・同一 viewport で各条件を fresh tab から5回実施する: A=Default、B=`User-Agent` main_frame、C=`User-Agent` 同一 origin request、D=C+low-entropy UA-CH、E=D+最小 MAIN-world legacy navigator。記録は表示種別、Native Live Chat 成否/error、request headers、page/worker identity dump、login 維持、console error。Chrome 154 fixture と実端末 browser version の組合せも分離する。成功を推測で確定しない。
+Desktop A/S1とMobile UA-onlyのYouTube試験は完了した。Observed fixture値は結果記録として保持するが、Desktop 154とMobile 148を製品で組み合わせない。製品化前に同一milestoneのDesktop/Mobile Reduced UAを選定し、両profile、一般site、lifecycle、permission、CWS条件を検証する。成功を推測で確定しない。
 
 根拠: [`chrome.declarativeNetRequest`](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest)、[`chrome.scripting`](https://developer.chrome.com/docs/extensions/reference/api/scripting)、[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)、[UA Client Hints specification](https://wicg.github.io/ua-client-hints/)、[Chrome UA-CH guide](https://developer.chrome.com/docs/privacy-security/user-agent-client-hints)。
 
@@ -42,7 +42,7 @@ UA-CH は `Sec-CH-UA`、`Sec-CH-UA-Mobile`、`Sec-CH-UA-Platform` と `navigator
 
 ### Conclusion
 
-The smallest candidate for desktop recognition during normal navigation is a fixed `User-Agent` request header on a granted origin. UA-CH and JavaScript-visible identity may still reveal Android, so the requirement for YouTube Desktop Web plus Native Live Chat remains unproven. There is no dedicated extension “browser profile override” API; current status is CONDITIONAL GO.
+The validated minimum candidate for Desktop or Mobile recognition during normal navigation is setting the `User-Agent` request header on `main_frame` for granted hosts. YouTube observations passed Desktop Web plus Native Live Chat and, in the reverse direction, Mobile Web plus playback without changing UA-CH or JavaScript-visible identity. This is YouTube-specific and is not generalized. Product UAs are managed as one Verified Profile Set at the same milestone; the first product set and general compatibility remain unresolved, so status is CONDITIONAL GO.
 
 The table above maps directly as follows: legacy UA header is DNR-capable; low-entropy UA-CH headers are testable DNR candidates; high-entropy metadata lacks a general consistency API; legacy `navigator` values require a fragile MAIN-world override; `navigator.userAgentData` requires a facade-like patch; WorkerNavigator cannot be reliably covered with supported MV3 mechanisms; `oscpu` is excluded.
 
@@ -50,6 +50,6 @@ Applying only to `main_frame` is minimal, but same-document first-party fetch/XH
 
 `world: "MAIN"` at `document_start` is the earliest supported content-script candidate, but it shares the page world and can be observed or interfered with. `injectImmediately` does not guarantee execution before an already-started page. If needed, use a registered, tiny, value-only patch limited to granted origins. It still cannot guarantee Worker or browser-internal UA metadata consistency.
 
-Run the five-condition A/B matrix described above on the same device/account/viewport, five fresh-tab runs per condition. Record UI variant, Native Live Chat result/error, request headers, page/worker identity, login continuity, and console errors. Separate the Chrome 154 fixture question from the actual browser-version question. Do not infer success.
+The YouTube Desktop A/S1 and Mobile UA-only tests are complete. Preserve observed fixture values as evidence, but do not combine Desktop 154 with Mobile 148 in the product. Before product use, select same-milestone Desktop and Mobile Reduced UAs and validate both profiles plus general-site, lifecycle, permission, and CWS conditions. Do not infer success.
 
 Sources: [`chrome.declarativeNetRequest`](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest), [`chrome.scripting`](https://developer.chrome.com/docs/extensions/reference/api/scripting), [Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts), [UA Client Hints specification](https://wicg.github.io/ua-client-hints/), and [Chrome UA-CH guide](https://developer.chrome.com/docs/privacy-security/user-agent-client-hints).

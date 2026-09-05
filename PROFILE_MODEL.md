@@ -2,11 +2,11 @@
 
 ## 日本語
 
-MVP profileの第一候補は`Default`、`Desktop`、`Mobile`の3つとする。`Default`はidentity変更なし、`Desktop`と`Mobile`は検証済みのUA-only `main_frame`方式を採る。ただし具体的な製品UA値とversion管理方針は未確定である。
+MVP profileは`Default`、`Desktop`、`Mobile`の3つとする。`Default`はidentity変更なし、`Desktop`と`Mobile`は検証済みのUA-only `main_frame`方式を採る。UA version管理は`PROFILE_SET_POLICY.md`の検証済みProfile Setを正とする。
 
 `Default`はExtensionによるidentity変更なし。`Desktop`と`Mobile`の製品fixtureは、versionを無検証で自動追従する値ではなく、検証済みの管理値とする。fixtureは`id`、schema version、display name、HTTP header values、検証したbrowser build/date、既知の制約を持つ。ユーザーがarbitrary valueを編集する機能は持たない。
 
-Desktop Chrome 154とMobile Chrome/Android 148は実験fixtureにすぎず、製品値として確定しない。YouTubeではDesktop/Mobileとも`User-Agent`だけで成立し、UA-CHやMAIN-world navigator整合は不要だった。製品fixtureのversion選定・更新・互換性確認方法は別途決定する。
+DesktopとMobileはMDPSが検証した同一Chrome milestoneのProfile Setとして一元管理する。実行中browser majorへの追従、latest取得、動的UA生成、任意version指定は行わない。Desktop Chrome 154とMobile Chrome/Android 148は別環境の実験fixtureであり、製品Profile Setとして組み合わせない。最初の製品milestoneは別途選定・検証する。
 
 ### 今回の調査後の第一候補
 
@@ -16,11 +16,11 @@ YouTubeの実測ではWindows Chrome 154 UA fixtureで成立したが、このve
 
 ## English
 
-The first MVP candidate has three profiles: `Default`, `Desktop`, and `Mobile`. Default makes no identity change; Desktop and Mobile use the validated UA-only `main_frame` approach. The concrete product UA values and version-management policy remain undecided.
+The MVP has three profiles: `Default`, `Desktop`, and `Mobile`. Default makes no identity change; Desktop and Mobile use the validated UA-only `main_frame` approach. `PROFILE_SET_POLICY.md` is authoritative for UA version management through a Verified Profile Set.
 
 Default means no identity modification by the extension. Product fixtures for Desktop and Mobile are validated managed values, not versions that automatically follow an untested latest release. A fixture records its ID, schema version, display name, HTTP header values, tested browser build/date, and known limitations. Arbitrary user editing is excluded.
 
-Desktop Chrome 154 and Mobile Chrome/Android 148 are experiment fixtures, not committed product values. Both Desktop and Mobile succeeded on YouTube with only `User-Agent`; UA-CH and MAIN-world navigator consistency were unnecessary. Product fixture version selection, updates, and compatibility validation remain separate decisions.
+Desktop and Mobile are centrally managed in one validated Profile Set at the same Chrome milestone. Do not track the running browser major, fetch latest versions, generate dynamic UA versions, or accept arbitrary version input. Desktop Chrome 154 and Mobile Chrome/Android 148 are experimental fixtures from different environments and must not be combined into a product set. The first product milestone requires separate selection and validation.
 
 ### Post-investigation first candidate
 
