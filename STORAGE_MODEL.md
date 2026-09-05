@@ -37,6 +37,10 @@ step 4以前の失敗は設定を変更しない。DNR失敗時はold settings�
 
 起動、Extension update、UI openで必ずreconcileし、storage→permission確認→DNRの一方向で修復する。DNR actual stateをstorageへ反映しない。
 
+### Testability
+
+transactionの状態遷移、journal判定、rollback/recovery decisionはpure coreとし、storage/DNR/permissionをinjectable adapterにする。Level 1で各failure pointをfakeにより完全自動検査し、Level 2でactual `chrome.storage.local`とDNRのread-back/reconcileを一括確認する。実Extension reload後の復元だけをLevel 3の1回のmanual smokeへ残す。
+
 ## English
 
 ### Keys and authority
@@ -64,3 +68,7 @@ A failure before journaling changes nothing. A DNR failure restores rules derive
 - An unsupported `schemaVersion` is never guessed or interpreted without migration. Remove all dynamic rules to fail closed, preserve raw settings, show `schema_unsupported`, and never reset without user confirmation.
 
 Always reconcile at startup, extension update, and UI open in one direction: storage → permission verification → DNR. Never write actual DNR state back into storage.
+
+### Testability
+
+Keep transaction transitions, journal decisions, and rollback/recovery decisions in the pure core, with injectable storage/DNR/permission adapters. Level 1 uses fakes to cover every failure point, Level 2 performs one actual `chrome.storage.local` and DNR read-back/reconcile run, and only restoration after a real extension reload remains in the one Level 3 manual smoke.

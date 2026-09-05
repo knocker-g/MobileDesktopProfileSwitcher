@@ -40,6 +40,10 @@ DNR updateが失敗した場合は、old desired setへbest-effort rollbackす�
 
 rule count limit、regex support、header変更能力は生成前に検査する。limit超過時はstorage mutationをcommitせず、ユーザーへSite/host数を減らすよう通知する。
 
+### Testability
+
+desired rule生成とactual/desired diffはChrome APIから分離したpure functionとし、Level 1で全invariantをsnapshot比較する。Chrome adapterはLevel 2でactual `getDynamicRules()`/`updateDynamicRules()`と照合する。wire header確認は初回PC smokeでProfileごとに1回だけ行い、毎回の手動確認にはしない。詳細は`ACCEPTANCE_TEST_STRATEGY.md`を正とする。
+
 ## English
 
 ### Rule generation
@@ -65,3 +69,7 @@ Global OFF removes every actual dynamic rule while preserving storage and permis
 If a DNR update fails, best-effort restore the previous desired set. If state cannot be verified or rollback fails, remove all dynamic rules to fail closed, retain storage, surface `reconcile_required`, and retry from storage at startup, UI open, or explicit user retry. Never import actual DNR state back into storage.
 
 Check rule-count limits, regex support, and header capability before generation. If limits would be exceeded, do not commit the storage mutation and ask the user to reduce the Site/host count.
+
+### Testability
+
+Keep desired-rule generation and actual/desired diff as pure functions separated from Chrome APIs, and snapshot every invariant at Level 1. At Level 2, compare the Chrome adapter against actual `getDynamicRules()`/`updateDynamicRules()`. Inspect wire headers only once per Profile in the initial PC smoke, not as a repeated manual check. `ACCEPTANCE_TEST_STRATEGY.md` is authoritative.

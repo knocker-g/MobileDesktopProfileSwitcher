@@ -88,6 +88,10 @@ storageを唯一のsource of truth、DNRをhostごと1本の派生状態とす�
 
 optional permissionの最初の実機gateとして、`investigation/permission-lifecycle-probe/`を用意した。PC Chromeでは、DNRを混ぜずにexact HTTP/HTTPS hostのrequest、contains、remove、再containsの最小cycleがPASSした。Quetta Android単独PoCは未実施だが、製品版Android final smokeで同等以上のpermission lifecycleを確認できるなら省略する。
 
+### MVP実装・Acceptance移行
+
+次段階は`MVP_IMPLEMENTATION_PLAN.md`の小さいPhase/commit単位で実装し、`ACCEPTANCE_TEST_STRATEGY.md`の4 levelで受け入れる。pure logicとinvariantはLevel 1、actual Chrome API lifecycleはLevel 2のPC runner、表示・再生・初回wireだけをLevel 3、PCで保証できないQuetta差分だけをLevel 4へ集約する。途中の細かなmanual確認は原則要求しない。
+
 ## English
 
 ### Objective and baselines
@@ -141,3 +145,7 @@ The MVP stores multiple explicit hosts and one profile per Site and forbids cros
 Storage is the sole source of truth, and DNR is derived as one rule per host. Use stable rule IDs, a pending-mutation journal, startup/UI/update reconciliation, rollback on failure, and final fail-closed rule removal. `SITE_SETTINGS_MODEL.md`, `PERMISSION_LIFECYCLE.md`, `DNR_RULE_MODEL.md`, and `STORAGE_MODEL.md` are authoritative. Pre-implementation validation now targets permission request/removal, Global OFF/ON, crash recovery, rule limits, and PC/Android UI lifecycle.
 
 The first optional-permission device gate is available at `investigation/permission-lifecycle-probe/`. On PC Chrome, its DNR-free minimum cycle passed for exact HTTP/HTTPS-host request, contains, remove, and post-remove contains. The standalone Quetta Android PoC remains untested, but it may be omitted if the product Android final smoke provides an equal-or-stronger permission-lifecycle check.
+
+### Transition to MVP implementation and acceptance
+
+The next stage implements the small Phase/commit units in `MVP_IMPLEMENTATION_PLAN.md` and accepts them through the four levels in `ACCEPTANCE_TEST_STRATEGY.md`. Level 1 owns pure logic and invariants, Level 2 consolidates actual Chrome API lifecycle in a PC runner, Level 3 retains only display/playback and one-time wire checks, and Level 4 covers only Quetta gaps that PC cannot prove. Incremental manual checks are not requested by default.

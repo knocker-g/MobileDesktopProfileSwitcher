@@ -18,6 +18,8 @@ MVPは`activeTab`で現在のHTTP(S) hostnameだけをprefillする`Add current 
 
 PC ChromiumとAndroid Chromiumの両方で、単純な1カラムを基本とするresponsive UI、十分なtap target、keyboard操作、横scrollなしを維持する。一般UA Switcherのような大量のUA/version/OS選択UIは置かない。
 
+UI controllerはChrome APIを直接呼ばずadapter経由とし、状態表示、validation、error、keyboard操作をLevel 1で自動検査する。実popupのpermission promptとresponsive目視はPC consolidated smokeとAndroid final smokeへ各1回だけ集約する。
+
 ## English
 
 The action popup is a single column with no horizontal scrolling and all primary actions visible on one screen. It contains the product name, Global ON/OFF, Current Host, registration state, current profile, large `Default`/`Desktop`/`Mobile` choices, `Add current host` or `Apply & Reload`, and a short permission/status message.
@@ -33,5 +35,7 @@ Show `Default`, `Desktop`, and `Mobile` as the primary profile labels. Chrome, W
 When a host belongs to another Site, identify the conflicting Site and disable Save. Preview URL input as its normalized hostname and explain that scheme, path, query, and port are not stored. Removing the last host leads to Site deletion confirmation. Explain that Default and Global OFF retain permission, while Global OFF preserves settings and stops every rule.
 
 The MVP uses `activeTab` only to prefill the current HTTP(S) hostname for `Add current host`, with manual input retained. Do not create a Site immediately from the popup; let the user confirm name, host, profile, and requested permission before Save. Unsupported URLs disable prefill and link to manual entry.
+
+UI controllers call Chrome APIs only through adapters so state rendering, validation, errors, and keyboard behavior can be automated at Level 1. Consolidate visual checks of the actual popup and permission prompt into one PC smoke and one Android final smoke.
 
 Use a simple responsive, primarily single-column UI on both desktop and Android Chromium, with adequate tap targets, keyboard access, and no horizontal scrolling. Do not add the large UA/version/OS selection surface of a general UA switcher.
