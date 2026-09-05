@@ -47,9 +47,9 @@ Profile Setは製品同梱の既知値である。runtimeにUA profile、latest 
 
 既存実測のDesktop `Chrome/154.0.0.0`とMobile `Chrome/148.0.0.0`は、異なる環境で使用したexperimental fixtureである。これらはObserved resultの証拠として保持するが、同一製品Profile Setとして組み合わせない。最初の製品Profile Set milestoneは別途選定し、Desktop/Mobile双方を同じmilestoneで検証してから確定する。
 
-### 次フェーズ
+### 後続設計
 
-次の設計対象はサイト設定・権限モデルとする。1 Siteに複数の明示hostを持たせる構造、SiteごとのDefault/Desktop/Mobile、optional host permission lifecycle、PC/Android UI、DNR dynamic rule lifecycle、Extension全体ON/OFF、現在siteからの登録・変更を詳細化する。この文書はそれらの製品コード実装を開始しない。
+サイト設定・権限モデルは`SITE_SETTINGS_MODEL.md`、`PERMISSION_LIFECYCLE.md`、`DNR_RULE_MODEL.md`、`STORAGE_MODEL.md`で詳細化する。Profile SetはSite設定から参照する製品同梱値であり、Siteごとに複製・編集しない。これらの設計文書は製品コード実装を開始しない。
 
 ## English
 
@@ -98,6 +98,6 @@ The normal UI exposes only `Default`, `Desktop`, and `Mobile`. Chrome, Windows, 
 
 The observed Desktop `Chrome/154.0.0.0` and Mobile `Chrome/148.0.0.0` values are experimental fixtures used in different environments. Keep them as evidence for the observed results, but never combine them into one product Profile Set. Select the first product milestone separately and validate both Desktop and Mobile at that same milestone before adoption.
 
-### Next phase
+### Follow-on design
 
-The next design subject is the site-settings and permission model: multiple explicit hosts per Site, per-Site Default/Desktop/Mobile selection, optional-host-permission lifecycle, PC/Android UI, DNR dynamic-rule lifecycle, extension-wide ON/OFF, and registration or profile changes from the current site. This document does not begin product-code implementation.
+`SITE_SETTINGS_MODEL.md`, `PERMISSION_LIFECYCLE.md`, `DNR_RULE_MODEL.md`, and `STORAGE_MODEL.md` detail the site-settings and permission model. The Profile Set is a bundled product value referenced by Site settings, never copied or edited per Site. These design documents do not begin product-code implementation.

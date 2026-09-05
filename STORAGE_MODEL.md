@@ -1,0 +1,66 @@
+# Storage and Transaction Model / Storage・transactionモデル
+
+## 日本語
+
+### Keysと正本
+
+`chrome.storage.local`だけを使用する。`settings`が唯一のconfiguration source of truthで、`pendingMutation`はcrash recovery用journal、`health`は非秘密の診断状態である。DNRやpermission一覧を正本として保存しない。
+
+- `settings`: `SITE_SETTINGS_MODEL.md`のschema。
+- `pendingMutation`: `{ operationId, baseRevision, nextSettings }`。mutation中だけ存在する。
+- `health`: `ok | permission_missing | permission_cleanup_required | reconcile_required | schema_unsupported`と最小error code。URLやpage contentを含めない。
+
+### Transaction
+
+create/edit/profile/global toggle/deleteは次の順序で行う。
+
+全mutationはservice worker内の単一queueで直列化し、UIは読み込み時の`revision`をSaveへ渡す。処理開始時にrevisionが一致しなければ`stale_revision`として拒否し、最新設定を再表示する。これにより複数popup/settings contextのlost updateを防ぐ。
+
+1. 現在の`settings`を読み、schema/revision/全fieldを検証する。
+2. 入力を正規化し、duplicate、permission、rule limitをpreflightする。
+3. 必要な新規permissionをuser gesture内で取得・再確認する。
+4. `revision + 1`の`nextSettings`を作り、`pendingMutation`へ書く。ここでは正本を変えない。
+5. `nextSettings`からdesired DNR setを生成し、atomicな`updateDynamicRules`で適用・再確認する。
+6. DNR成功後、`settings = nextSettings`を1回のstorage writeでcommitする。
+7. `pendingMutation`を削除し`health = ok`とする。
+8. 削除対象permissionがあればcommit後にremoveする。失敗はcleanup warningとして再試行する。
+
+step 4以前の失敗は設定を変更しない。DNR失敗時はold settings由来ruleへrollbackし、new permissionだけを解放する。DNR成功後のsettings write失敗またはservice worker停止ではjournalを残す。次回起動時はpersist済み`settings`を正とし、そのrevisionとjournalを比較してDNRをsettingsへ戻し、未commitの新規permissionをbest-effort解放してjournalを消す。settings commit後にjournal削除だけ失敗した場合はrevision一致を検出し、settingsからDNRを再確認してjournalを消す。
+
+### Validation errorとschema
+
+- permission拒否: old settings/rules維持、draft維持。
+- storage write失敗: commitなし。DNRをold settingsへrollback。確認不能なら全rule削除して`reconcile_required`。
+- DNR失敗: commitなし、old ruleへrollback。失敗時fail closed。
+- 不正host/duplicate別Site/Site名空欄/hosts空/unknown profile: permission要求前に拒否。
+- unsupported `schemaVersion`: migrationなしに解釈しない。全dynamic ruleを削除してfail closed、raw settingsを保持し`schema_unsupported`を表示する。ユーザー確認なしにresetしない。
+
+起動、Extension update、UI openで必ずreconcileし、storage→permission確認→DNRの一方向で修復する。DNR actual stateをstorageへ反映しない。
+
+## English
+
+### Keys and authority
+
+Use only `chrome.storage.local`. `settings` is the sole configuration source of truth; `pendingMutation` is a crash-recovery journal, and `health` is non-secret diagnostic state. Never persist DNR or permission listings as authority.
+
+- `settings` uses the schema in `SITE_SETTINGS_MODEL.md`.
+- `pendingMutation` is `{ operationId, baseRevision, nextSettings }` and exists only during mutation.
+- `health` is `ok | permission_missing | permission_cleanup_required | reconcile_required | schema_unsupported` plus a minimal error code, never a URL or page content.
+
+### Transaction
+
+Create, edit, profile/global toggle, and delete follow the same order: validate current schema/revision and every field; normalize input and preflight duplicates, permission, and rule limits; obtain and verify new permission within a user gesture; journal `nextSettings` at `revision + 1` without changing authority; atomically apply and verify its desired DNR set; commit `settings = nextSettings` in one storage write; clear the journal and set health to `ok`; then remove obsolete permission after commit, retrying cleanup failures.
+
+Serialize every mutation through one service-worker queue. The UI submits the `revision` it loaded; reject a mismatch as `stale_revision` and refresh the latest settings. This prevents lost updates from concurrent popup or settings contexts.
+
+A failure before journaling changes nothing. A DNR failure restores rules derived from old settings and releases only newly obtained permission. If DNR succeeds but the settings write fails or the worker stops, retain the journal. At next startup, persisted `settings` remains authoritative: compare revisions, restore DNR from settings, best-effort release uncommitted new permission, and clear the journal. If settings committed but only journal removal failed, detect the matching revision, verify DNR from settings, and clear the journal.
+
+### Validation errors and schema
+
+- Permission denial preserves old settings/rules and the UI draft.
+- Storage-write failure does not commit; restore old DNR, or remove all rules and mark `reconcile_required` if verification is impossible.
+- DNR failure does not commit; restore old rules, failing closed if restoration fails.
+- Invalid host, cross-Site duplicate, empty Site name, empty hosts, and unknown profile fail before requesting permission.
+- An unsupported `schemaVersion` is never guessed or interpreted without migration. Remove all dynamic rules to fail closed, preserve raw settings, show `schema_unsupported`, and never reset without user confirmation.
+
+Always reconcile at startup, extension update, and UI open in one direction: storage → permission verification → DNR. Never write actual DNR state back into storage.

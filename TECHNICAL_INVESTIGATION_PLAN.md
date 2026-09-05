@@ -41,7 +41,7 @@ Sony Xperia 1 V の Quetta Android で native narrow viewport を維持し、一
 
 ### Manifest V3 capability
 
-DNR `modifyHeaders`/`set` による4headerの独立変更は、今回のQuetta実機/buildでCAP-H PASSを確認済み。製品permission設計は `declarativeNetRequestWithHostAccess` + `optional_host_permissions` を第一候補とする。
+DNR `modifyHeaders`/`set` による4headerの独立変更は、今回のQuetta実機/buildでCAP-H PASSを確認済み。製品permissionは`storage`、`declarativeNetRequestWithHostAccess`、現在host prefill限定の`activeTab`、およびexact runtime grant用`optional_host_permissions`とする。`scripting`は採用しない。
 
 `scripting` + `world: "MAIN"` はWindow propertyの候補にすぎず専用identity APIではない。pageから干渉可能で、WorkerNavigatorやbrowser内部UA metadataを変えない。`document_start`も全page code/Workerより先の絶対保証ではない。isolated worldではpageが読む`navigator`を変えられない。
 
@@ -78,7 +78,13 @@ PC Chromeの通常viewportで逆方向のMobile Profileも実測した。明示�
 
 ### Verified Profile Set gate
 
-UA version管理は`PROFILE_SET_POLICY.md`を正とする。Desktop/MobileはMDPSが検証した同一Chrome milestoneのProfile Setとして製品に同梱する。実行中majorへの追従、latest取得、動的生成、任意version入力、remote profile/configurationを禁止する。Desktop 154とMobile 148はObservedなexperimental fixtureであり、製品Setとして組み合わせない。最初の製品milestoneについて両Reduced UAの妥当性、同一milestoneでのDesktop/Mobile成立、主要互換性を確認するまで全体判定は **CONDITIONAL GO**。次の設計フェーズはサイト設定・権限モデルとする。
+UA version管理は`PROFILE_SET_POLICY.md`を正とする。Desktop/MobileはMDPSが検証した同一Chrome milestoneのProfile Setとして製品に同梱する。実行中majorへの追従、latest取得、動的生成、任意version入力、remote profile/configurationを禁止する。Desktop 154とMobile 148はObservedなexperimental fixtureであり、製品Setとして組み合わせない。最初の製品milestoneについて両Reduced UAの妥当性、同一milestoneでのDesktop/Mobile成立、主要互換性を確認するまで全体判定は **CONDITIONAL GO**。後続のサイト設定・権限モデルは次節と専用文書で確定する。
+
+### Site・permission・DNR設計gate
+
+MVPは1 Siteに複数の明示hostと1 profileを持ち、同一hostの複数Site登録を禁止する。Defaultは保存値だがruleなし。Global OFFは設定とpermissionを維持して全dynamic ruleを削除し、ONでstorageから再生成する。Site追加は全新規hostのexact permission取得時だけ確定し、編集拒否時はold Siteを維持する。削除後にpermissionを解放する。
+
+storageを唯一のsource of truth、DNRをhostごと1本の派生状態とする。stable rule ID、pending mutation journal、startup/UI/update reconciliation、失敗時rollbackと最終fail-closed rule削除を採用する。詳細は`SITE_SETTINGS_MODEL.md`、`PERMISSION_LIFECYCLE.md`、`DNR_RULE_MODEL.md`、`STORAGE_MODEL.md`を正とする。次の実装前確認は、permission request/remove、Global OFF/ON、crash recovery、rule limit、PC/Android UI lifecycleのprototype検証である。
 
 ## English
 
@@ -98,7 +104,7 @@ The authoritative sequence is in `IDENTITY_AB_TEST_MATRIX.md`. A1 set only the m
 
 Record Pass/Fail/Not observed for unchanged viewport, Desktop Web, login, playback, Native Live Chat, reload, same-tab, new-tab, Quetta restart, origin scope/cleanup, and regressions on a neutral page plus three general-site classes. Treat Desktop Web and Live Chat separately and rerun controls for transient failures.
 
-CAP-H confirmed independent DNR `modifyHeaders`/`set` modification of all four headers on the tested Quetta device/build. Product permission design should prefer `declarativeNetRequestWithHostAccess` plus optional host grants. MAIN-world scripting is not a dedicated identity API, is page-interferable, does not cover Worker/browser metadata, and has no absolute earliest-execution guarantee. Reviewed official Extension APIs do not confirm an atomic browser-level override for `userAgentData`, high entropy, and Worker identity; CDP is excluded.
+CAP-H confirmed independent DNR `modifyHeaders`/`set` modification of all four headers on the tested Quetta device/build. Product permissions are `storage`, `declarativeNetRequestWithHostAccess`, `activeTab` limited to current-host prefill, and optional host permission for exact runtime grants. `scripting` is excluded. MAIN-world scripting is not a dedicated identity API, is page-interferable, does not cover Worker/browser metadata, and has no absolute earliest-execution guarantee. Reviewed official Extension APIs do not confirm an atomic browser-level override for `userAgentData`, high entropy, and Worker identity; CDP is excluded.
 
 ### Boundaries and Technical Gate
 
@@ -124,4 +130,10 @@ The reverse Mobile Profile was also observed on PC Chrome at normal viewport. Ap
 
 ### Verified Profile Set gate
 
-`PROFILE_SET_POLICY.md` is authoritative for UA version management. Desktop and Mobile are bundled as one MDPS-validated Profile Set at the same Chrome milestone. Tracking the running major, latest lookup, dynamic generation, arbitrary version input, and remote profile/configuration are prohibited. The observed Desktop 154 and Mobile 148 experimental fixtures must not be combined as a product set. Overall status remains **CONDITIONAL GO** until the first product milestone has valid Reduced UAs for both platforms, both profiles pass at the same milestone, and principal compatibility checks pass. The next design phase is the site-settings and permission model.
+`PROFILE_SET_POLICY.md` is authoritative for UA version management. Desktop and Mobile are bundled as one MDPS-validated Profile Set at the same Chrome milestone. Tracking the running major, latest lookup, dynamic generation, arbitrary version input, and remote profile/configuration are prohibited. The observed Desktop 154 and Mobile 148 experimental fixtures must not be combined as a product set. Overall status remains **CONDITIONAL GO** until the first product milestone has valid Reduced UAs for both platforms, both profiles pass at the same milestone, and principal compatibility checks pass. The following section and dedicated documents finalize the subsequent site-settings and permission model.
+
+### Site, permission, and DNR design gate
+
+The MVP stores multiple explicit hosts and one profile per Site and forbids cross-Site host duplication. Default is persisted but has no rule. Global OFF retains settings and permission while removing every dynamic rule; ON regenerates from storage. Creation commits only after exact permission for every new host; a denied edit preserves the old Site. Deletion releases permission after commit.
+
+Storage is the sole source of truth, and DNR is derived as one rule per host. Use stable rule IDs, a pending-mutation journal, startup/UI/update reconciliation, rollback on failure, and final fail-closed rule removal. `SITE_SETTINGS_MODEL.md`, `PERMISSION_LIFECYCLE.md`, `DNR_RULE_MODEL.md`, and `STORAGE_MODEL.md` are authoritative. Pre-implementation validation now targets permission request/removal, Global OFF/ON, crash recovery, rule limits, and PC/Android UI lifecycle.

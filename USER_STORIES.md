@@ -2,22 +2,22 @@
 
 ## 日本語
 
-- ユーザーは現在の site を一目で確認し、Default または Desktop Chrome を大きな tap target で選べる。
-- ユーザーは明示操作で現在 origin の permission を許可し、profile を記憶して reload できる。
-- ユーザーは一時適用を選び、永続 site 設定を増やさず試せる。
-- ユーザーは保存済み origin と profile を確認し、個別に削除できる。
-- ユーザーは global default を設定できるが、未許可 origin へ暗黙の host access は与えない。
-- ユーザーは Default に戻すことで変更 rule と page override を外し、reload できる。
+- ユーザーは現在hostを一目で確認し、登録済みSiteの`Default`、`Desktop`、`Mobile`を大きなtap targetで選べる。
+- ユーザーは現在hostをSite formへprefillし、明示操作でexact host permissionを許可して保存・reloadできる。
+- ユーザーは1つのSiteに複数の明示hostを登録し、1つのprofileを一括適用できる。
+- ユーザーは保存済みSite、host、profile、permission状態を確認し、編集・削除・permission解放できる。
+- ユーザーはGlobal OFFで全identity変更を止め、設定とpermissionを保持したまま後でONへ戻せる。
+- ユーザーはSiteをDefaultへ戻し、host groupとpermissionを維持したままruleを外してreloadできる。
 
 受入条件: viewport は変えない、ログイン情報を触らない、無許可 site を変更しない、適用前後と permission 状態を明示する、失敗時に成功表示しない。
 
 ## English
 
-- A user can see the current site and select Default or Desktop Chrome using large tap targets.
-- Through an explicit gesture, a user can grant the current origin, remember a profile, and reload.
-- A user can try a temporary application without adding a persistent site setting.
-- A user can inspect saved origins and profiles and remove each entry.
-- A user can set a global default, but it never creates implicit host access for ungranted origins.
-- Selecting Default removes applicable rules/page overrides and reloads.
+- A user can see the current host and choose `Default`, `Desktop`, or `Mobile` for its registered Site using large tap targets.
+- A user can prefill the current host into a Site form, explicitly grant exact host permission, save, and reload.
+- A user can register multiple explicit hosts under one Site and apply one profile to all of them.
+- A user can inspect and edit saved Sites, hosts, profiles, and permission state, or delete and release permission.
+- A user can use Global OFF to stop every identity change while retaining settings and permission for later ON.
+- A user can return a Site to Default, remove its rule, and reload while preserving its host group and permission.
 
 Acceptance criteria: never change the viewport or login data; never modify an ungranted site; clearly show profile and permission state; never report success when application failed.
