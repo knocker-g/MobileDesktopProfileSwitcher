@@ -10,7 +10,7 @@ toolbar actionからrunner UIを開き、`OFF → A → B → C → D → OFF re
 
 ### A〜D/S1とfixture
 
-A/S1だけは`https://www.youtube.com/*`と`https://m.youtube.com/*`の明示的2hostの`main_frame`を対象にする。これは既存Mobile tabのreload仮説を検証するための調査拡張である。B/C/Dのscopeは従来どおり`https://www.youtube.com/*`の`main_frame`のみ。1本のsession ruleに現在modeのheader集合だけを設定する。
+A/S1とMobile modeは`https://www.youtube.com/*`と`https://m.youtube.com/*`の明示的2hostの`main_frame`を対象にする。B/C/Dのscopeは従来どおり`https://www.youtube.com/*`の`main_frame`のみ。1本のsession ruleに現在modeのheader集合だけを設定する。
 
 | Mode | Badge | Request headers |
 |---|---|---|
@@ -19,6 +19,7 @@ A/S1だけは`https://www.youtube.com/*`と`https://m.youtube.com/*`の明示的
 | B/S1 | `B` | A + `Sec-CH-UA-Mobile` |
 | C/S1 | `C` | B + `Sec-CH-UA-Platform` |
 | D/S1 | `D` | C + `Sec-CH-UA` |
+| Mobile | `MOB` | Mobile `User-Agent`のみ |
 
 | Header | Experiment fixture |
 |---|---|
@@ -26,6 +27,7 @@ A/S1だけは`https://www.youtube.com/*`と`https://m.youtube.com/*`の明示的
 | `Sec-CH-UA` | `"Not/A)Brand";v="8", "Chromium";v="154", "Google Chrome";v="154"` |
 | `Sec-CH-UA-Mobile` | `?0` |
 | `Sec-CH-UA-Platform` | `"Windows"` |
+| Mobile `User-Agent` | `Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36` |
 
 Chrome 154は既知Success baselineを再現する**experiment fixture**であり、product defaultではない。Page/Worker JavaScript identity、subframe、script、stylesheet、image、XHR/fetch、WebSocket、その他subresourceは変更しない。
 
@@ -36,7 +38,7 @@ Chrome 154は既知Success baselineを再現する**experiment fixture**であ�
 - `content-diagnostics.js`: `document_idle`で`www.youtube.com`または`m.youtube.com`のtop frameへ静的に読み込み、要求時だけDOMのboolean evidenceとviewport値を返す。Native OFF時にMobile Webへ遷移した最終documentも診断するための限定追加であり、DNR対象は拡張しない。
 - runnerはTabs APIで自分の試験tabをcreate、load監視、message送信、removeするが、機密なtab metadataを取得しないため`tabs` permissionは追加しない。
 
-`debugger`、`webRequest`、`cookies`、`tabs`、`scripting`、`storage` permissionは要求しない。DNR用`host_permissions`は`www.youtube.com`と`m.youtube.com`だけで、wildcard subdomain、`google.com`、`googlevideo.com`、`ytimg.com`等を許可しない。Aだけが両hostへUAを設定し、B/C/Dは`www`限定のまま。actual Request HeadersをExtensionから取得しない。
+`debugger`、`webRequest`、`cookies`、`tabs`、`scripting`、`storage` permissionは要求しない。DNR用`host_permissions`は`www.youtube.com`と`m.youtube.com`だけで、wildcard subdomain、`google.com`、`googlevideo.com`、`ytimg.com`等を許可しない。AとMobileだけが両hostへそれぞれのUAを設定し、B/C/Dは`www`限定のまま。actual Request HeadersをExtensionから取得しない。
 
 ### Installation on Quetta
 
@@ -59,7 +61,7 @@ Chrome 154は既知Success baselineを再現する**experiment fixture**であ�
 
 ### Manual Mode
 
-runner UIの`OFF`、`A`、`B`、`C`、`D`ボタンから、Run Allと同じmode定義・session rule更新処理を手動実行できる。選択時は旧ruleを削除し、選択modeのruleだけを登録して`getSessionRules()`で検証する。成功時は`Current mode`とtoolbar badgeが更新される。失敗時はruleを削除してbadgeとUIを`ERR`にする。
+runner UIの`OFF`、`A`、`B`、`C`、`D`、`Mobile`ボタンから共通のmode定義・session rule更新処理を手動実行できる。選択時は旧ruleを削除し、選択modeのruleだけを登録して`getSessionRules()`で検証する。成功時は`Current mode`とtoolbar badgeが更新される。Mobileは`Current mode: MOBILE`、badge `MOB`で識別する。失敗時はruleを削除してbadgeとUIを`ERR`にする。
 
 Manual ModeはDNR modeを固定するだけで、tab作成、navigation、診断、closeを行わない。Run All開始中は競合防止のためmanual buttonsを無効化し、Run Allはmanual状態に関係なくOFFから開始して最後にOFFへ復帰する。
 
@@ -77,6 +79,22 @@ A/S1を目視確認する例:
 8. chat入力欄を確認する。
 9. old-browser warningがないことを確認する。
 10. 終了後、runnerのManual Modeを`OFF`へ戻し、次のfresh navigationがNative headerへ復帰することを確認する。
+
+### Mobile UA-only mode（実測済み）
+
+PC Chromiumの通常Desktop viewportを維持し、`www.youtube.com`または`m.youtube.com`の`main_frame`だけへQuetta Native baseline由来のMobile Chrome/Android UA fixtureを設定する。UA-CH、JavaScript-visible identity、viewport、subresourceは変更しない。このfixtureは製品Mobile Profileの固定値ではない。
+
+1. PC Chromiumでこのdirectoryをunpacked Extensionとして読み込む。
+2. DevTools device emulationを使わず、通常Desktop viewportの既存`www.youtube.com/watch?...` tabを保持する。
+3. runnerを開き、Manual Modeで`Mobile`を選んで`Current mode: MOBILE`とbadge `MOB`を確認する。
+4. 同じYouTube tabを通常reloadする。ExtensionはURL rewrite、host変換、navigation、redirectを行わない。
+5. Mobile Webへの移行、viewport維持、動画再生、Live Chat、chat入力、old-browser warning、最終hostを目視記録する。
+6. 必要な場合だけDevToolsでmain documentの`User-Agent`がMobile fixtureで、UA-CHがPC Nativeのままかを確認する。
+7. 終了後Manual Modeを`OFF`へ戻してreloadする。
+
+Run Allのsequenceは`OFF → A → B → C → D → OFF recovery`のままで、Mobileを含めない。
+
+実測では通常PC viewportの既存`www.youtube.com` tabをreloadするとMobile Web、viewport維持、動画再生がPASSし、old-browser warningはなかった。YouTube自身が`m.youtube.com`へ移行し、ExtensionによるURL変換はなかった。DevToolsで`m.youtube.com` main documentのUAがfixtureへ変更されたことも確認した。Native Live Chatとchat入力はMobile Web設計上非表示であり、`EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN`としてMobile ProfileのFAILにはしない。この結果はPC Chrome上のYouTube固有であり、他siteや全Chromiumへ一般化しない。
 
 ### 自動収集
 
@@ -160,7 +178,7 @@ A/S1は別途DevToolsでactual wireを確認し、UAだけがWindows Chrome 154 
 - iframeの存在はLive Chatが実際に利用可能であることを保証しない。
 - load完了と8秒待機は全dynamic contentの完了を保証しない。
 - runner tabがbackgroundになった際のAndroid側timer/throttlingやQuetta lifecycleの影響を受け得る。
-- Aは`www.youtube.com`と`m.youtube.com`だけ、B/C/Dは`www.youtube.com`だけが対象であり、それ以外へのredirectは変更しない。
+- A/Mobileは`www.youtube.com`と`m.youtube.com`だけ、B/C/Dは`www.youtube.com`だけが対象であり、それ以外へのredirectは変更しない。
 - subresourceはNative identityのまま。S1全敗または明確な部分成功後にのみ別設計のS2を検討する。
 - wire capture、ablation、再現性判定、最終functional PASSは自動化していない。
 
@@ -174,11 +192,11 @@ youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie/Authoriza
 
 This investigation-only Manifest V3 extension automates the A–D/S1 sequence on Xperia 1 V + Quetta Android. It is not MobileDesktopProfileSwitcher product code or its MVP. The runner opens from the toolbar action and executes `OFF → A → B → C → D → OFF recovery`. After activating each DNR mode, it creates a fresh top-level YouTube tab, waits for load plus an eight-second DOM-settle interval, collects non-invasive diagnostics, and closes only that runner-created tab. It never clears cookies, site data, or login state.
 
-A/S1 targets `main_frame` requests on exactly `https://www.youtube.com/*` and `https://m.youtube.com/*` to test existing-Mobile-tab reload behavior. B/C/D retain their previous `www.youtube.com`-only `main_frame` scope. OFF sets nothing; A sets only UA; B adds CH-Mobile; C adds CH-Platform; D adds CH-UA. Chrome 154 is an experiment fixture, not a product default. Page/Worker JavaScript identity and all subresources remain unchanged.
+A/S1 and Mobile mode target `main_frame` requests on exactly `https://www.youtube.com/*` and `https://m.youtube.com/*`. B/C/D retain their previous `www.youtube.com`-only scope. OFF sets nothing; A sets Desktop UA; B–D retain their existing cumulative definitions; Mobile sets only the Quetta Native baseline Mobile UA. Desktop Chrome 154 and Mobile Chrome/Android 148 values are experiment fixtures, not product defaults. Page/Worker JavaScript identity, viewport, and subresources remain unchanged.
 
 ### Permissions and installation
 
-The only API permission is `declarativeNetRequestWithHostAccess`. Host permissions list exactly `https://www.youtube.com/*` and `https://m.youtube.com/*`; no wildcard subdomain or related Google/YouTube domain is included. A applies UA to both hosts, while B/C/D remain `www`-only. The runner does not request `tabs`, `scripting`, `debugger`, `webRequest`, `cookies`, or `storage` permission.
+The only API permission is `declarativeNetRequestWithHostAccess`. Host permissions list exactly `https://www.youtube.com/*` and `https://m.youtube.com/*`; no wildcard subdomain or related Google/YouTube domain is included. A and Mobile apply their respective UA-only rules to both hosts, while B/C/D remain `www`-only. The runner does not request `tabs`, `scripting`, `debugger`, `webRequest`, `cookies`, or `storage` permission.
 
 Copy the directory to device-accessible storage, enable Developer mode in Quetta, load it unpacked, verify there is no load error, pin its action, and disable every other identity-changing extension. Press the action to open the runner UI.
 
@@ -188,13 +206,21 @@ Optionally enter a user-chosen HTTPS URL on `www.youtube.com`, `m.youtube.com`, 
 
 ### Manual Mode
 
-The runner UI provides OFF/A/B/C/D buttons backed by the same mode definitions and session-rule update path as Run All. A selection removes the previous rule, registers only the selected mode, verifies it with `getSessionRules()`, and updates both `Current mode` and the toolbar badge. Failure clears the rule and displays `ERR`.
+The runner UI provides OFF/A/B/C/D/Mobile buttons backed by one mode-definition and session-rule update path. A selection removes the previous rule, registers only the selected mode, verifies it with `getSessionRules()`, and updates both `Current mode` and the toolbar badge. Mobile appears as `Current mode: MOBILE` with badge `MOB`. Failure clears the rule and displays `ERR`.
 
 Manual Mode only fixes the DNR mode; it does not create, navigate, diagnose, or close any tab. Its buttons are disabled while Run All is active. Run All ignores the prior manual state, starts with OFF, executes the unchanged sequence, and restores OFF at completion.
 
 To test an existing Mobile tab, first keep a Native `m.youtube.com/watch?...` tab open. Select Manual A, confirm `Current mode: A`, and normally reload that same tab. The extension performs no URL rewrite, redirect, or navigation. Visually verify Desktop Web, native viewport, playback, Native Live Chat, and chat input. In desktop DevTools, inspect the reloaded main document and confirm that only `User-Agent` uses the fixture while UA-CH remains Native. Return Manual Mode to OFF afterward.
 
 For a manual A/S1 check: open the runner, select A, confirm `Current mode: A`, open a fresh Quetta tab, navigate to the chosen YouTube Live URL, verify actual playback, inspect Native Live Chat content and its input field, confirm there is no old-browser warning, then return Manual Mode to OFF and use a fresh navigation to confirm Native restoration.
+
+### Mobile UA-only mode (observed)
+
+On PC Chromium, Mobile sets only the Quetta Native-baseline Mobile Chrome/Android UA on `main_frame` requests to the explicit `www` and `m` hosts. It does not change UA-CH, JavaScript-visible identity, viewport, or subresources. This experiment fixture is not a fixed product Mobile Profile.
+
+Load this directory unpacked in PC Chromium, keep normal desktop viewport with device emulation off, retain an existing `www.youtube.com` watch tab, select Manual Mobile, and confirm `Current mode: MOBILE` plus badge `MOB`. Normally reload the same tab; the extension performs no URL/host rewrite, forced navigation, or redirect. Observe Mobile Web, viewport, playback, Live Chat, chat input, old-browser warning, and final host. If needed, minimally confirm the main-document Mobile UA and unchanged native PC UA-CH in DevTools. Return to OFF afterward. Run All remains the unchanged OFF/A/B/C/D/OFF-recovery sequence and excludes Mobile.
+
+In the observed PC test, reloading an existing `www.youtube.com` tab at normal PC viewport passed Mobile Web, viewport retention, and playback with no old-browser warning. YouTube itself moved to `m.youtube.com`; the extension did not transform the URL. DevTools confirmed the fixture UA on the `m.youtube.com` main document. Native Live Chat and chat input were hidden by Mobile Web design and are recorded as `EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN`, not as a Mobile Profile failure. This result is specific to YouTube on the tested PC Chrome and is not generalized to other sites or all Chromium browsers.
 
 ### Automated and manual assessment
 
@@ -220,6 +246,6 @@ The existing-Mobile-tab test passed: Manual A changed the `m.youtube.com` main-d
 
 ### Known limitations and safety
 
-YouTube DOM experiments, localization, dynamic loading, Android background throttling, and Quetta lifecycle can yield `UNKNOWN` or timing failures. Frame presence does not prove usable chat. A touches exactly `www` and `m`; B/C/D touch only `www`; every other host is untouched. Subresources retain Native identity. Wire capture and the dual-host functional conclusion remain manual.
+YouTube DOM experiments, localization, dynamic loading, Android background throttling, and Quetta lifecycle can yield `UNKNOWN` or timing failures. Frame presence does not prove usable chat. A/Mobile touch exactly `www` and `m`; B/C/D touch only `www`; every other host is untouched. Subresources retain Native identity. Mobile was observed only on the tested PC Chrome and YouTube condition.
 
 Do not implement or collect youtubei payloads, `clientName`/`clientVersion`, visitorData, cookies/auth/OAuth, Native Live Chat APIs, endpoint-specific spoofing, response-triggered changes, proxy/IP changes, fingerprint randomization, or navigator/Worker patching. There is no telemetry, analytics, external test endpoint, persistent storage, or request/page-content storage.

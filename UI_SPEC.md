@@ -10,7 +10,7 @@ tap target は最低 44×44 CSS px、本文 16px 相当、keyboard focus と vis
 
 ### 調査反映後の表示方針
 
-主要なprofile選択は`Default`、`Desktop`、`Mobile`と表示し、Windows/AndroidやUA versionを前面に出さない。Mobileが未検証の間は確定済み選択肢として扱わず、状態を明示する。Site設定画面では1つのsite名の下に複数の明示hostを表示・追加・削除でき、各hostのoptional permission状態を確認できるようにする。
+主要なprofile選択は`Default`、`Desktop`、`Mobile`と表示し、Windows/AndroidやUA versionを前面に出さない。Desktop/MobileともYouTubeでUA-only成立性を確認済みのMVP第一候補として扱うが、fixture versionをUIで製品既定値として固定しない。Site設定画面では1つのsite名の下に複数の明示hostを表示・追加・削除でき、各hostのoptional permission状態を確認できるようにする。
 
 PC ChromiumとAndroid Chromiumの両方で、単純な1カラムを基本とするresponsive UI、十分なtap target、keyboard操作、横scrollなしを維持する。一般UA Switcherのような大量のUA/version/OS選択UIは置かない。
 
@@ -24,6 +24,6 @@ Settings contain global default, saved origin/profile rows, individual deletion,
 
 ### Post-investigation presentation
 
-Show `Default`, `Desktop`, and `Mobile` as the primary profile labels; do not foreground Windows/Android names or UA versions. Until Mobile is validated, do not present it as a confirmed choice and clearly label its status. A Site settings view can show, add, and remove multiple explicit hosts under one site and display each host's optional-permission state.
+Show `Default`, `Desktop`, and `Mobile` as the primary profile labels; do not foreground Windows/Android names or UA versions. Desktop and Mobile are first MVP candidates after YouTube UA-only validation, but the fixture version must not become a fixed product default in the UI. A Site settings view can show, add, and remove multiple explicit hosts under one site and display each host's optional-permission state.
 
 Use a simple responsive, primarily single-column UI on both desktop and Android Chromium, with adequate tap targets, keyboard access, and no horizontal scrolling. Do not add the large UA/version/OS selection surface of a general UA switcher.

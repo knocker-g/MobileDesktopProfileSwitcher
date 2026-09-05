@@ -105,7 +105,7 @@ async function selectManualMode(mode) {
     await activateMode(mode);
     statusNode.textContent = mode === "OFF"
       ? "Manual Mode is OFF. Native headers will apply to the next navigation."
-      : `Manual Mode ${mode} is active. Open a fresh Quetta tab manually.`;
+      : `Manual Mode ${mode} is active. Reload or open a test tab manually.`;
   } catch (error) {
     showCurrentMode("ERR");
     statusNode.textContent = `Manual Mode failed and rules were cleared: ${

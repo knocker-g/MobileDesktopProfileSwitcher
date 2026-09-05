@@ -2,13 +2,14 @@
 
 const RULE_ID = 1;
 const WWW_TARGET_URL_FILTER = "|https://www.youtube.com/";
-const A_DUAL_HOST_REGEX_FILTER = "^https://(www\\.youtube\\.com|m\\.youtube\\.com)/";
+const UA_ONLY_DUAL_HOST_REGEX_FILTER = "^https://(www\\.youtube\\.com|m\\.youtube\\.com)/";
 
 const FIXTURE = Object.freeze({
   userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
   chUa: '"Not/A)Brand";v="8", "Chromium";v="154", "Google Chrome";v="154"',
   chMobile: "?0",
   chPlatform: '"Windows"',
+  mobileUserAgent: "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36",
 });
 
 const HEADER = Object.freeze({
@@ -16,6 +17,7 @@ const HEADER = Object.freeze({
   chUa: { header: "sec-ch-ua", operation: "set", value: FIXTURE.chUa },
   chMobile: { header: "sec-ch-ua-mobile", operation: "set", value: FIXTURE.chMobile },
   chPlatform: { header: "sec-ch-ua-platform", operation: "set", value: FIXTURE.chPlatform },
+  mobileUa: { header: "user-agent", operation: "set", value: FIXTURE.mobileUserAgent },
 });
 
 const MODES = Object.freeze([
@@ -24,11 +26,12 @@ const MODES = Object.freeze([
   { id: "B", badge: "B", headers: [HEADER.ua, HEADER.chMobile] },
   { id: "C", badge: "C", headers: [HEADER.ua, HEADER.chMobile, HEADER.chPlatform] },
   { id: "D", badge: "D", headers: [HEADER.ua, HEADER.chMobile, HEADER.chPlatform, HEADER.chUa] },
+  { id: "MOBILE", badge: "MOB", headers: [HEADER.mobileUa] },
 ]);
 
 function ruleFor(mode) {
-  const targetCondition = mode.id === "A"
-    ? { regexFilter: A_DUAL_HOST_REGEX_FILTER }
+  const targetCondition = mode.id === "A" || mode.id === "MOBILE"
+    ? { regexFilter: UA_ONLY_DUAL_HOST_REGEX_FILTER }
     : { urlFilter: WWW_TARGET_URL_FILTER };
   return {
     id: RULE_ID,

@@ -58,6 +58,27 @@ PC DevToolsで`m.youtube.com`のmain document requestにWindows Chrome 154 fixtu
 
 初回runnerのOFF接続失敗は、Native Mobileの最終documentが`m.youtube.com`へ遷移すると旧`www`限定content scriptが存在しないことと整合した。diagnostics content scriptだけを`m.youtube.com`にも対応させ、DNR scopeは拡張していない。旧playability判定はhidden error componentの存在だけでtrueになったため、可視性、active player error state、可視error文言を組み合わせる保守的判定へ修正した。
 
+### Observed: Mobile UA-only Profile（PC Chrome）
+
+PC版Chromeをdevice emulationなしの通常viewportで使用した。Mobile modeは`https://www.youtube.com/*`と`https://m.youtube.com/*`の`main_frame`だけを対象とし、次のexperiment fixtureを`User-Agent`だけへ設定した。
+
+`Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36`
+
+UA-CH、JavaScript-visible identity、viewport、subresourceは変更していない。ExtensionによるURL rewrite、host変換、強制navigation、redirectもない。通常のPC版YouTubeを開いた既存tabでMobile modeを有効化し、同じtabを通常reloadした。
+
+| Outcome | Mobile UA-only |
+|---|---|
+| YouTube Mobile Web | **PASS** |
+| PC viewport維持 | **PASS** |
+| Video playback | **PASS** |
+| Old-browser warning | NO |
+| Native Live Chat | **EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN** |
+| Chat input | **EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN** |
+
+最終URLは`https://m.youtube.com/watch?v=rYzvSk_YWIY`で、YouTube自身が`www.youtube.com`から`m.youtube.com`へ移行した。ExtensionはURLを変更していない。DevToolsでは`m.youtube.com` main document requestの`User-Agent`が上記Mobile fixtureと完全一致し、Mobile UA-only ruleのwire適用を確認した。UA-CHは変更対象外であり、この試験では実測値を確定していない。
+
+今回のPC Chrome + YouTube条件では、`main_frame`のUA-only変更でPC viewportを維持したままMobile Webと動画再生が成立した。Mobile WebでNative Live Chatと入力欄が非表示なのは期待される挙動であり、Mobile ProfileのFAILではない。拡張側canonicalizationや強制navigationは不要だった。この結論はYouTube固有のObserved resultであり、他site、全Chromium、将来のYouTubeへ一般化しない。fixtureはproduct defaultではなく、製品UA version管理方針は未確定である。
+
 ## English
 
 ### Environment and A/S1
@@ -91,3 +112,17 @@ For YouTube on this device/build, one Desktop Profile can therefore bind the exp
 ### Diagnostics corrections
 
 The first runner's OFF connection failure was consistent with a Native Mobile final document on `m.youtube.com` lacking the former `www`-only content script. Diagnostics matching now covers mobile documents without extending DNR scope. The former playability check treated hidden error components as errors; the corrected conservative check combines visibility, active player-error state, and visible error text.
+
+### Observed: Mobile UA-only Profile on PC Chrome
+
+Testing used desktop Chrome at its normal PC viewport with no device emulation. Mobile mode targeted only `main_frame` on the explicit `https://www.youtube.com/*` and `https://m.youtube.com/*` hosts and set only `User-Agent` to this experiment fixture:
+
+`Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36`
+
+UA-CH, JavaScript-visible identity, viewport, and subresources were unchanged. The extension performed no URL rewrite, host conversion, forced navigation, or redirect. Mobile mode was enabled over an existing normal desktop YouTube tab, then that same tab was normally reloaded.
+
+YouTube Mobile Web, retained PC viewport, and video playback all **PASSED**, with no old-browser warning. Native Live Chat and chat input were not displayed, which is **EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN**, not a Mobile Profile failure.
+
+The final URL was `https://m.youtube.com/watch?v=rYzvSk_YWIY`; YouTube itself moved from `www.youtube.com` to `m.youtube.com`. DevTools confirmed that the `m.youtube.com` main-document `User-Agent` exactly matched the Mobile fixture, establishing wire application of the Mobile UA-only rule. UA-CH was outside the modification scope and its values were not established by this test.
+
+For this PC Chrome and YouTube condition, changing only main-frame UA produced Mobile Web and playback without changing the PC viewport. Extension-side canonicalization or forced navigation was unnecessary. This is a YouTube-specific observed result, not a general claim for other sites, every Chromium browser, or future YouTube behavior. The fixture is not a product default, and product UA-version management remains undecided.

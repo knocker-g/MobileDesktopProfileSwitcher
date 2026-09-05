@@ -100,6 +100,12 @@ scope軸はA/S1で停止した。A/S1はactual wireと全functional outcomeがPA
 
 成功条件はnative viewport維持、Desktop Web、Google/YouTube login維持、通常動画、Native Live Chat、基本操作に明白な破綻なし。LiveFlow/NicoFlowは成功条件・依存対象にしない。
 
+### Mobile Profile UA-only実測
+
+PC Chromeの通常viewportで、明示的な`www.youtube.com`/`m.youtube.com`の`main_frame`にMobile Chrome / Android fixtureの`User-Agent`だけを適用した。既存`www.youtube.com` tabのreload後、Mobile Web、PC viewport維持、動画再生が**PASS**し、old-browser warningはなかった。YouTube自身が最終的に`m.youtube.com`へ移行した。ExtensionはURL rewrite、強制navigation、redirectを行っていない。
+
+DevToolsで`m.youtube.com` main documentのUAがfixtureへ変化したことを確認した。UA-CH、JavaScript-visible identity、viewport、subresourceは変更していない。Native Live Chatとchat入力はMobile Web設計上非表示であり、`EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN`としてFAILに分類しない。従ってYouTube条件ではDesktop/MobileともUA-only `main_frame`を製品profileの第一候補とする。ただしfixture version、他site、他Chromium、将来互換性は未確定である。
+
 ## English
 
 ### Recording rules and identity matrix
@@ -149,3 +155,9 @@ Because all four initial-main-frame headers changed, use the proven Chrome 154 v
 The sequence stopped at A/S1 after actual-wire and full functional PASS plus fresh-navigation reproduction. Applying the same UA-only main-frame rule to the explicit `www.youtube.com` and `m.youtube.com` host set also passed an existing-Mobile-tab reload; YouTube itself moved to its desktop URL. UA-CH and JavaScript identity remained Native, so no B/C/D, S2, or extension URL rewrite is needed for this YouTube condition. Do not generalize to other sites.
 
 Success requires retained native viewport, Desktop Web, Google/YouTube login, normal playback, Native Live Chat, and no obvious breakage in basic operation. LiveFlow/NicoFlow are neither success criteria nor dependencies.
+
+### Mobile Profile UA-only observation
+
+On PC Chrome at normal viewport, Mobile mode applied only a Mobile Chrome/Android fixture `User-Agent` to `main_frame` on the explicit `www.youtube.com` and `m.youtube.com` hosts. Reloading an existing `www.youtube.com` tab passed Mobile Web, retained PC viewport, and playback with no old-browser warning. YouTube itself ultimately moved to `m.youtube.com`; the extension performed no URL rewrite, forced navigation, or redirect.
+
+DevTools confirmed the fixture UA on the `m.youtube.com` main document. UA-CH, JavaScript-visible identity, viewport, and subresources were not modified. Native Live Chat and chat input were hidden by Mobile Web design and are classified as `EXPECTED: NOT AVAILABLE BY MOBILE WEB DESIGN`, not failures. For this YouTube condition, both Desktop and Mobile use UA-only `main_frame` as the first product-profile candidate. Fixture versions, other sites, other Chromium browsers, and future compatibility remain unknown.

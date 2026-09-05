@@ -2,28 +2,28 @@
 
 ## 日本語
 
-MVP profile は `default` と `desktop-chrome` の2つ。`mobile-chrome` は将来候補であり MVP 必須ではない。
+MVP profileの第一候補は`Default`、`Desktop`、`Mobile`の3つとする。`Default`はidentity変更なし、`Desktop`と`Mobile`は検証済みのUA-only `main_frame`方式を採る。ただし具体的な製品UA値とversion管理方針は未確定である。
 
-`default` は Extension による identity 変更なし。`desktop-chrome` は version を自動追従する疑似 profile ではなく、検証済みの固定 fixture とする。fixture は `id`、schema version、display name、HTTP header values、必要なら JavaScript-visible values、検証した browser build/date、既知の制約を持つ。ユーザーが arbitrary value を編集する機能は持たない。
+`Default`はExtensionによるidentity変更なし。`Desktop`と`Mobile`の製品fixtureは、versionを無検証で自動追従する値ではなく、検証済みの管理値とする。fixtureは`id`、schema version、display name、HTTP header values、検証したbrowser build/date、既知の制約を持つ。ユーザーがarbitrary valueを編集する機能は持たない。
 
-Chrome 154 は既存実験の入力値にすぎず製品値として確定しない。MVP fixture は A/B 試験で、(A) `User-Agent` のみ、(B) low-entropy UA-CH 追加、(C) MAIN-world navigator 整合を比較してから固定する。不整合が大きい値は profile に含めない。
+Desktop Chrome 154とMobile Chrome/Android 148は実験fixtureにすぎず、製品値として確定しない。YouTubeではDesktop/Mobileとも`User-Agent`だけで成立し、UA-CHやMAIN-world navigator整合は不要だった。製品fixtureのversion選定・更新・互換性確認方法は別途決定する。
 
 ### 今回の調査後の第一候補
 
-UI上のprofile名はOS名やUA文字列ではなく`Default`、`Desktop`、`Mobile`を前面に出す。`Default`は変更なし、`Desktop`は検証済みUA-only `main_frame` profileを第一候補とする。`Mobile`はMobile Chrome / Android UA-only `main_frame`の候補だが、未実機検証のため確定profileやMVP必須機能として扱わない。
+UI上のprofile名はOS名やUA文字列ではなく`Default`、`Desktop`、`Mobile`を前面に出す。`Default`は変更なし。YouTube実測では`Desktop`と`Mobile`の双方が、明示的な`www.youtube.com`/`m.youtube.com`の`main_frame`に対するUA-onlyで成立したため、両方をMVPの第一候補とする。この結果はYouTube固有であり、他siteや全Chromiumへ一般化しない。
 
 YouTubeの実測ではWindows Chrome 154 UA fixtureで成立したが、このversionはproduct defaultではない。大量のUA/version/OS選択肢やarbitrary editorを提供する一般UA Switcherにはしない。
 
 ## English
 
-MVP has two profiles: `default` and `desktop-chrome`. `mobile-chrome` is a future candidate, not an MVP requirement.
+The first MVP candidate has three profiles: `Default`, `Desktop`, and `Mobile`. Default makes no identity change; Desktop and Mobile use the validated UA-only `main_frame` approach. The concrete product UA values and version-management policy remain undecided.
 
-`default` means no identity modification by the extension. `desktop-chrome` is a validated, fixed fixture—not an automatically guessed latest version. A fixture records its ID, schema version, display name, HTTP header values, optional JavaScript-visible values, tested browser build/date, and known limitations. Arbitrary user editing is excluded.
+Default means no identity modification by the extension. Product fixtures for Desktop and Mobile are validated managed values, not versions that automatically follow an untested latest release. A fixture records its ID, schema version, display name, HTTP header values, tested browser build/date, and known limitations. Arbitrary user editing is excluded.
 
-Chrome 154 is only an input from the prior experiment, not a committed product value. The MVP fixture is fixed after comparing (A) `User-Agent` only, (B) added low-entropy UA-CH, and (C) MAIN-world navigator consistency. Values that create material inconsistency are excluded.
+Desktop Chrome 154 and Mobile Chrome/Android 148 are experiment fixtures, not committed product values. Both Desktop and Mobile succeeded on YouTube with only `User-Agent`; UA-CH and MAIN-world navigator consistency were unnecessary. Product fixture version selection, updates, and compatibility validation remain separate decisions.
 
 ### Post-investigation first candidate
 
-Present `Default`, `Desktop`, and `Mobile` as user-facing profile names rather than OS names or UA strings. Default makes no change. Desktop first uses a validated UA-only `main_frame` profile. Mobile is a candidate UA-only Mobile Chrome/Android main-frame profile, but it is not confirmed or required for MVP until device testing passes.
+Present `Default`, `Desktop`, and `Mobile` as user-facing profile names rather than OS names or UA strings. Default makes no change. YouTube observation validated both Desktop and Mobile using UA-only on `main_frame` for the explicit `www.youtube.com`/`m.youtube.com` host set, so both are first MVP candidates. This is YouTube-specific and is not generalized to other sites or all Chromium browsers.
 
 The YouTube experiment passed with a Windows Chrome 154 UA fixture, but that version is not the product default. Do not become a general UA switcher with large UA/version/OS catalogs or arbitrary editing.

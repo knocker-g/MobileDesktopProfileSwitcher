@@ -43,7 +43,7 @@ input {
 
 .mode-buttons {
   display: grid;
-  grid-template-columns: repeat(5, minmax(52px, 1fr));
+  grid-template-columns: repeat(6, minmax(52px, 1fr));
   gap: 8px;
 }
 
