@@ -51,7 +51,7 @@ DNR `modifyHeaders`/`set` による4headerの独立変更は、今回のQuetta�
 
 youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、endpoint別identity、HTTP error起点切替、proxy/IP、randomization、service-specific workaround、unsupported API、Worker constructor hook、広範prototype patch、remote codeを扱わない。
 
-GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。YouTube A/S1はUA-onlyで(1)〜(5)の対象条件を満たした。一般site、lifecycle、product UA/version、CWS評価が残るため現在は **CONDITIONAL GO**。
+GOには次の全条件が必要: (1) Desktop Webの最小identity/scopeをablationで特定、(2) Live Chatの追加差分または追加不要を説明、(3) 必須差分をdocumented/supported MV3 APIで再現、(4) service spoof/invasive patch不要、(5) excessive permission不要、(6) lifecycle/general-site試験合格、(7) CWSのsingle purpose/minimum permission/user control/privacyと整合。YouTube A/S1はUA-onlyで(1)〜(5)の対象条件を満たし、製品SetはChrome 152で定義した。Chrome 152実browser、一般site、lifecycle、CWS評価が残るため現在は **CONDITIONAL GO**。
 
 ### 一次資料
 
@@ -78,7 +78,7 @@ PC Chromeの通常viewportで逆方向のMobile Profileも実測した。明示�
 
 ### Verified Profile Set gate
 
-UA version管理は`PROFILE_SET_POLICY.md`を正とする。Desktop/MobileはMDPSが検証した同一Chrome milestoneのProfile Setとして製品に同梱する。実行中majorへの追従、latest取得、動的生成、任意version入力、remote profile/configurationを禁止する。Desktop 154とMobile 148はObservedなexperimental fixtureであり、製品Setとして組み合わせない。最初の製品milestoneについて両Reduced UAの妥当性、同一milestoneでのDesktop/Mobile成立、主要互換性を確認するまで全体判定は **CONDITIONAL GO**。後続のサイト設定・権限モデルは次節と専用文書で確定する。
+UA version管理は`PROFILE_SET_POLICY.md`を正とする。初期製品SetはChrome 152で、Desktop/Mobile Reduced UAを同一milestoneとして製品に同梱する。実行中majorへの追従、latest取得、動的生成、任意version入力、remote profile/configurationを禁止する。Desktop 154とMobile 148はObservedなexperimental fixtureであり、製品Setへ流用しない。Chrome 152 Setの形式と同一milestoneは自動検証し、実browserでのDesktop/Mobile成立と主要互換性は後続Acceptanceに残すため、全体判定は **CONDITIONAL GO**。
 
 ### Site・permission・DNR設計gate
 
@@ -114,7 +114,7 @@ CAP-H confirmed independent DNR `modifyHeaders`/`set` modification of all four h
 
 ### Boundaries and Technical Gate
 
-All prohibited variables and seven GO conditions are identical to the Japanese section. YouTube A/S1 satisfies the relevant first five conditions with UA-only on this device/build. Overall status remains **CONDITIONAL GO** pending general-site, lifecycle, product-UA/version, and CWS validation.
+All prohibited variables and seven GO conditions are identical to the Japanese section. YouTube A/S1 satisfies the relevant first five conditions with UA-only on this device/build, and the product set is defined at Chrome 152. Overall status remains **CONDITIONAL GO** pending Chrome 152 real-browser, general-site, lifecycle, and CWS validation.
 
 ### Primary sources
 
@@ -136,7 +136,7 @@ The reverse Mobile Profile was also observed on PC Chrome at normal viewport. Ap
 
 ### Verified Profile Set gate
 
-`PROFILE_SET_POLICY.md` is authoritative for UA version management. Desktop and Mobile are bundled as one MDPS-validated Profile Set at the same Chrome milestone. Tracking the running major, latest lookup, dynamic generation, arbitrary version input, and remote profile/configuration are prohibited. The observed Desktop 154 and Mobile 148 experimental fixtures must not be combined as a product set. Overall status remains **CONDITIONAL GO** until the first product milestone has valid Reduced UAs for both platforms, both profiles pass at the same milestone, and principal compatibility checks pass. The following section and dedicated documents finalize the subsequent site-settings and permission model.
+`PROFILE_SET_POLICY.md` is authoritative for UA version management. The initial product set bundles Desktop and Mobile Chrome 152 Reduced UAs at one milestone. Tracking the running major, latest lookup, dynamic generation, arbitrary version input, and remote profile/configuration are prohibited. The observed Desktop 154 and Mobile 148 experiment fixtures are not promoted into the product set. Form and common milestone are automated; overall status remains **CONDITIONAL GO** until both Chrome 152 profiles pass real-browser and principal compatibility checks.
 
 ### Site, permission, and DNR design gate
 

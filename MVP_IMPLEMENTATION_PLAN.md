@@ -25,7 +25,7 @@
 | 9. Hardening / release candidate | recovery、permission revoke、rule limit、migration、privacy/CWS checklist、package除外確認 | `npm run verify`、fault matrix、package audit | PC consolidated smoke 1回 | release-candidate commit。失敗時Phase単位でrevert |
 | 10. Android final gate | 製品版をQuettaへloadしPCで保証できない差分だけ確認 | 事前に全Level 1/2をPASS | Android/Quetta final smoke 1回 | 結果文書を独立commitし、失敗時は製品commitを改変せず原因Phaseへ戻る |
 
-Phase 1開始前に最初の製品Profile Set milestoneを決める。決定できなければfixtureをproduct defaultへ流用せずPhase 1を停止する。各Phaseで新たな手動確認を要求せず、Chrome実APIはPhase 8、目視機能はPhase 9/10へまとめる。重大なAPI差が早期に見つかった場合だけ例外とし、理由、最小操作、期待値、停止条件を提示する。
+初期製品Profile Set milestoneはChrome 152に決定し、Desktop/Mobile Reduced UAを同一milestoneでPhase 1に実装した。過去のfixtureは流用しない。各Phaseで新たな手動確認を要求せず、Chrome実APIはPhase 8、目視機能はPhase 9/10へまとめる。重大なAPI差が早期に見つかった場合だけ例外とし、理由、最小操作、期待値、停止条件を提示する。
 
 ### Repository / test構造案
 
@@ -46,7 +46,7 @@ investigation/
 
 ### Gateと未確定事項
 
-- Phase 1 gate: 最初の製品Profile Set milestoneと同一milestoneのDesktop/Mobile Reduced UA。
+- Phase 1 gate: Chrome 152のDesktop/Mobile Reduced UAと自動検証を実装済み。real-browser functional acceptanceはPhase 8〜10で行う。
 - Phase 5 gate: dynamic-rule上限、rule ID上限、regex supportを実環境値と照合する。
 - Phase 8 gate: PC Chromeでactual storage/permission/DNR lifecycleが一括PASSする。
 - Phase 9 gate: PC manual smokeと一度限りのmain-frame wire確認。
@@ -78,7 +78,7 @@ The product manifest uses only `storage`, `declarativeNetRequestWithHostAccess`,
 | 9. Hardening / release candidate | recovery, permission revoke, rule limit, migration, privacy/CWS checklist, package audit | `npm run verify`, fault matrix, package audit | One consolidated PC smoke | Release-candidate commit; revert by Phase if needed |
 | 10. Android final gate | load product build in Quetta and inspect only gaps PC cannot prove | All Level 1/2 checks pass first | One Android/Quetta final smoke | Separate results commit; on failure return to the responsible Phase without rewriting product history |
 
-Select the first product Profile Set milestone before Phase 1. If it is unavailable, never promote experiment fixtures to product defaults; stop Phase 1. Do not request incremental manual checks during implementation. Consolidate real Chrome API testing in Phase 8 and visual behavior in Phases 9/10. An early exception requires evidence of an API-specific blocker plus a stated reason, minimum operations, expected result, and stop condition.
+The initial product Profile Set is Chrome 152, and Phase 1 implements both Desktop and Mobile Reduced UAs at that milestone without promoting prior fixtures. Do not request incremental manual checks during implementation. Consolidate real Chrome API testing in Phase 8 and visual behavior in Phases 9/10. An early exception requires evidence of an API-specific blocker plus a stated reason, minimum operations, expected result, and stop condition.
 
 ### Proposed repository and test structure
 
@@ -88,7 +88,7 @@ Once Phase 1 starts, the canonical command is `npm run verify`. With no external
 
 ### Gates and open items
 
-- Phase 1: select one product Profile Set milestone and valid Desktop/Mobile Reduced UAs at that same milestone.
+- Phase 1: Chrome 152 Desktop/Mobile Reduced UAs and their automated validation are implemented; real-browser functional acceptance remains in Phases 8–10.
 - Phase 5: verify dynamic-rule and rule-ID limits plus regex support against target environments.
 - Phase 8: pass actual storage/permission/DNR lifecycle in PC Chrome in one run.
 - Phase 9: pass one PC manual smoke and one-time main-frame wire verification.

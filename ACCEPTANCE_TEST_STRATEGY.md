@@ -76,7 +76,7 @@ MVP完成までの予定は、PC integration runnerでprompt許可1回、PC manu
 - Level 2: API lifecycle/reconcile PASS、promptだけMANUALとして実際に許可済み、cleanup PASS。
 - Level 3: Desktop/Mobile/Default/Global OFF、再生、reload recovery PASS。初回wire 3点一致。
 - Level 4: Quetta load、exact permission、Desktop/native viewport/playback、Default復帰、Site削除後permission解放 PASS。
-- 未確定の最初のProfile Set milestone、一般site compatibility、CWS審査準備は別release gateであり、試験結果を推測しない。
+- Chrome 152 Profile Setのreal-browser compatibility、一般site compatibility、CWS審査準備は別release gateであり、試験結果を推測しない。
 
 ## English
 
@@ -120,4 +120,4 @@ The MVP budget is one prompt approval in the PC integration runner, one PC manua
 - Level 2: API lifecycle/reconcile and cleanup pass; the sole prompt is actually approved as a MANUAL step.
 - Level 3: Desktop/Mobile/Default/Global OFF, playback, reload recovery, and the three one-time wire checks pass.
 - Level 4: Quetta load, exact permission, Desktop/native viewport/playback, Default restoration, and permission release after Site deletion pass.
-- The first Profile Set milestone, general-site compatibility, and CWS submission preparation remain separate release gates; do not infer their outcomes.
+- Real-browser compatibility of the Chrome 152 Profile Set, general-site compatibility, and CWS submission preparation remain separate release gates; do not infer their outcomes.

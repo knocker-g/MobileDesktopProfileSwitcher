@@ -4,7 +4,7 @@
 
 ### 結論
 
-通常navigationをDesktop/Mobileとして認識させる検証済み最小候補は、許可hostの`main_frame`に対する`User-Agent` request headerの設定である。YouTube実測ではUA-CHとJavaScript-visible identityを変更せず、Desktop Web + Native Live Chat、および逆方向のMobile Web + 動画再生がそれぞれ成立した。これはYouTube固有のObserved resultであり一般化しない。製品UAは同一milestoneの検証済みProfile Setとして管理し、最初の製品Setと一般互換性が未確定のためCONDITIONAL GOとする。
+通常navigationをDesktop/Mobileとして認識させる検証済み最小候補は、許可hostの`main_frame`に対する`User-Agent` request headerの設定である。YouTube実測ではUA-CHとJavaScript-visible identityを変更せず、Desktop Web + Native Live Chat、および逆方向のMobile Web + 動画再生がそれぞれ成立した。これはYouTube固有のObserved resultであり一般化しない。製品UAはChrome 152の同一milestone Profile Setとして定義したが、その実browser Acceptanceと一般互換性が未確定のためCONDITIONAL GOとする。
 
 | 項目 | 表すもの | 標準 Extension 手段 | MV3 | 初期判断 |
 |---|---|---|---|---|
@@ -42,7 +42,7 @@ Desktop A/S1とMobile UA-onlyのYouTube試験は完了した。Observed fixture�
 
 ### Conclusion
 
-The validated minimum candidate for Desktop or Mobile recognition during normal navigation is setting the `User-Agent` request header on `main_frame` for granted hosts. YouTube observations passed Desktop Web plus Native Live Chat and, in the reverse direction, Mobile Web plus playback without changing UA-CH or JavaScript-visible identity. This is YouTube-specific and is not generalized. Product UAs are managed as one Verified Profile Set at the same milestone; the first product set and general compatibility remain unresolved, so status is CONDITIONAL GO.
+The validated minimum candidate for Desktop or Mobile recognition during normal navigation is setting the `User-Agent` request header on `main_frame` for granted hosts. YouTube observations passed Desktop Web plus Native Live Chat and, in the reverse direction, Mobile Web plus playback without changing UA-CH or JavaScript-visible identity. This is YouTube-specific and is not generalized. Product UAs are defined as one Chrome 152 Profile Set at the same milestone; its real-browser acceptance and general compatibility remain unresolved, so status is CONDITIONAL GO.
 
 The table above maps directly as follows: legacy UA header is DNR-capable; low-entropy UA-CH headers are testable DNR candidates; high-entropy metadata lacks a general consistency API; legacy `navigator` values require a fragile MAIN-world override; `navigator.userAgentData` requires a facade-like patch; WorkerNavigator cannot be reliably covered with supported MV3 mechanisms; `oscpu` is excluded.
 

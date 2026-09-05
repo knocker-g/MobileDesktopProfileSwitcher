@@ -4,21 +4,21 @@
 
 viewport を変更せず、ユーザーが許可した site に固定 browser identity profile を適用して Desktop/Mobile Web の通常表示を選択させる Chromium Extension の計画である。
 
-> **現在はMVP実装計画・Acceptance設計まで完了し、製品Extensionはまだ実装されていません。** 本 repository の記述は対応済み、完全動作、production ready、全 Chromium browser 対応を意味しません。未検証事項は未検証として扱います。
+> **現在はMVP Phase 1の製品skeletonとChrome 152 Profile Setまで実装済みで、Site/storage/DNR/UI機能はまだ未実装です。** 本 repository の記述は完全動作、production ready、全Chromium browser対応を意味しません。未検証事項は未検証として扱います。
 
 ### Decision Summary
 
-- MVP profile: `Default`、`Desktop`、`Mobile`。Desktop/Mobileは同一Chrome milestoneの検証済みProfile Setから供給するUA-only `main_frame` profile。
+- MVP profile: `Default`、`Desktop`、`Mobile`。初期製品SetはChrome 152で、Desktop/Mobile UAを同じmilestoneから供給する。DefaultはUA変更なし。
 - MVP permission: `storage`、`declarativeNetRequestWithHostAccess`、現在host prefill限定の`activeTab`、exact runtime grant用`optional_host_permissions`。`tabs`、`scripting`、install時host grantは不採用。
 - architecture: popup/settings → storage正本のSite（複数明示host+1 profile）→ exact user grant → hostごとのDNR dynamic rule → reload。Global OFFはruleを全削除。Profile Setは製品同梱で外部取得なし。
 - technical risks: UA/UA-CH/JavaScript/Workerの意図的な不一致、Android Chromium API差、permission/storage/DNR lifecycle、rule limit、YouTube側の判定変更。
-- 実装gate: PC exact-host permission最小cycleは実測PASS。最初の製品Profile Set、Global OFF/ON、storage/DNR rollback・recovery、rule limit、PC/Android product lifecycle、CWS reviewが残る。
+- 実装gate: PC exact-host permission最小cycleとPhase 1自動検証はPASS。Chrome 152 real-browser Acceptance、Global OFF/ON、storage/DNR rollback・recovery、rule limit、PC/Android product lifecycle、CWS reviewが残る。
 - verification: pure coreとChrome adapterを分離し、Level 1 Static/Unit、Level 2 PC integration runner、Level 3 PC manual smoke、Level 4 Android/Quetta final smokeの順で確認する。手動予算はPC 1〜2 session、Android最終1 session。
 - UA version policy: 実行中majorへ追従せず、Desktop/Mobileで同じmilestoneを使う検証済みProfile Setを通常package更新として管理。任意version/UA editorなし。
 - MAIN-world navigator modification: YouTube成立条件では不要だったためMVP不採用。
 - Client Hints 整合性: **supported Extension API だけで完全整合できるとは現時点で確認できない**。特に `navigator.userAgentData` と Worker/high-entropy 値が gate。
 - Chrome Web Store: **条件付きで公開可能性あり**。optional exact-host grantとnarrow single purposeは適合方向。optional capability envelope、保持permission、`activeTab`の説明とlifecycle再現性がgate。
-- 現時点評価: **CONDITIONAL GO**。UA-only方式は対象条件で成立済み。最初の製品Profile Setとpermission/storage/DNR lifecycle、一般site、CWS検証が残る。
+- 現時点評価: **CONDITIONAL GO**。UA-only方式は対象条件で成立し、Chrome 152 Setを実装済み。permission/storage/DNR lifecycle、Chrome 152実browser、一般site、CWS検証が残る。
 
 ### Documents
 
@@ -34,20 +34,20 @@ viewport を変更せず、ユーザーが許可した site に固定 browser id
 
 This repository plans a Chromium extension that leaves the viewport unchanged and applies a fixed browser identity profile to user-approved sites, letting normal site behavior select Desktop or Mobile Web.
 
-> **MVP implementation planning and acceptance design are complete; the product extension has not been implemented.** Nothing here claims existing support, full operation, production readiness, or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
+> **The MVP Phase 1 product skeleton and Chrome 152 Profile Set are implemented; Site, storage, DNR, and UI functionality are not.** Nothing here claims full operation, production readiness, or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
 
 ### Decision Summary
 
-- MVP profiles: `Default`, `Desktop`, and `Mobile`. Desktop and Mobile are UA-only `main_frame` profiles supplied by one Verified Profile Set at the same Chrome milestone.
+- MVP profiles: `Default`, `Desktop`, and `Mobile`. The initial product set is Chrome 152 and supplies both UAs at the same milestone; Default makes no UA change.
 - MVP permissions: `storage`, `declarativeNetRequestWithHostAccess`, `activeTab` limited to current-host prefill, and optional host permission for exact runtime grants. Exclude `tabs`, `scripting`, and install-time host grants.
 - Architecture: popup/settings → storage-authoritative Site (multiple explicit hosts plus one profile) → exact user grant → one DNR dynamic rule per host → reload. Global OFF removes every rule. The Profile Set is bundled with no external lookup.
 - Risks: intentional UA versus UA-CH/JavaScript/Worker inconsistency, Android Chromium API differences, permission/storage/DNR lifecycle, rule limits, and changing YouTube detection.
-- Implementation gates: the minimum PC exact-host permission cycle passed on-device. The first product Profile Set, Global OFF/ON, storage/DNR rollback and recovery, rule limits, PC/Android product lifecycle, and CWS review remain.
+- Implementation gates: the minimum PC exact-host permission cycle and Phase 1 automation pass. Chrome 152 real-browser acceptance, Global OFF/ON, storage/DNR rollback and recovery, rule limits, PC/Android product lifecycle, and CWS review remain.
 - Verification separates pure core from Chrome adapters and proceeds through Level 1 Static/Unit, Level 2 PC integration runner, Level 3 PC manual smoke, and Level 4 Android/Quetta final smoke. The manual budget is one or two PC sessions and one final Android session.
 - UA version policy: do not track the running major; manage a packaged Verified Profile Set whose Desktop and Mobile values share one milestone. No arbitrary version or UA editor.
 - MAIN-world navigator modification: excluded from MVP because the YouTube success condition did not require it.
 - Client Hints consistency: **not currently confirmed achievable using only supported Extension APIs**, especially for `navigator.userAgentData`, Worker, and high-entropy values.
 - Chrome Web Store: **conditionally publishable**. Optional exact-host grants and a narrow purpose are favorable; explaining the optional capability envelope, retained permission, and `activeTab`, plus reproducible lifecycle behavior, are gates.
-- Current decision: **CONDITIONAL GO**. UA-only passed the target conditions; the first product Profile Set, permission/storage/DNR lifecycle, general-site behavior, and CWS validation remain.
+- Current decision: **CONDITIONAL GO**. UA-only passed the target conditions and the Chrome 152 set is implemented. Permission/storage/DNR lifecycle, Chrome 152 real-browser, general-site, and CWS validation remain.
 
 The Documents list above is language-neutral and links to every bilingual specification file.

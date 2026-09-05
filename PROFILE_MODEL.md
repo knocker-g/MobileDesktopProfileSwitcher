@@ -6,7 +6,7 @@ MVP profileは`Default`、`Desktop`、`Mobile`の3つとする。`Default`はide
 
 `Default`はExtensionによるidentity変更なし。`Desktop`と`Mobile`の製品fixtureは、versionを無検証で自動追従する値ではなく、検証済みの管理値とする。fixtureは`id`、schema version、display name、HTTP header values、検証したbrowser build/date、既知の制約を持つ。ユーザーがarbitrary valueを編集する機能は持たない。
 
-DesktopとMobileはMDPSが検証した同一Chrome milestoneのProfile Setとして一元管理する。実行中browser majorへの追従、latest取得、動的UA生成、任意version指定は行わない。Desktop Chrome 154とMobile Chrome/Android 148は別環境の実験fixtureであり、製品Profile Setとして組み合わせない。最初の製品milestoneは別途選定・検証する。
+DesktopとMobileはMDPSが検証した同一Chrome milestoneのProfile Setとして一元管理する。初期製品SetはChrome 152であり、両UAを`Chrome/152.0.0.0`として同梱する。実行中browser majorへの追従、latest取得、動的UA生成、任意version指定は行わない。Desktop Chrome 154とMobile Chrome/Android 148は別環境の実験fixtureであり、製品Profile Setへ流用しない。Chrome 152の実browser機能Acceptanceは後続Phaseで行う。
 
 ### 今回の調査後の第一候補
 
@@ -20,7 +20,7 @@ The MVP has three profiles: `Default`, `Desktop`, and `Mobile`. Default makes no
 
 Default means no identity modification by the extension. Product fixtures for Desktop and Mobile are validated managed values, not versions that automatically follow an untested latest release. A fixture records its ID, schema version, display name, HTTP header values, tested browser build/date, and known limitations. Arbitrary user editing is excluded.
 
-Desktop and Mobile are centrally managed in one validated Profile Set at the same Chrome milestone. Do not track the running browser major, fetch latest versions, generate dynamic UA versions, or accept arbitrary version input. Desktop Chrome 154 and Mobile Chrome/Android 148 are experimental fixtures from different environments and must not be combined into a product set. The first product milestone requires separate selection and validation.
+Desktop and Mobile are centrally managed in one validated Profile Set at the same Chrome milestone. The initial product set is Chrome 152 and bundles both UAs in `Chrome/152.0.0.0` form. Do not track the running browser major, fetch latest versions, generate dynamic UA versions, or accept arbitrary version input. Desktop Chrome 154 and Mobile Chrome/Android 148 are experiment fixtures from different environments and are not promoted into the product set. Real-browser functional acceptance for Chrome 152 remains in later phases.
 
 ### Post-investigation first candidate
 

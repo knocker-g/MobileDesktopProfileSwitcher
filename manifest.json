@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "MobileDesktopProfileSwitcher",
+  "version": "0.1.0",
+  "description": "Apply a verified Desktop or Mobile browser profile to user-approved sites without changing the viewport.",
+  "permissions": [
+    "storage",
+    "declarativeNetRequestWithHostAccess",
+    "activeTab"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
+}

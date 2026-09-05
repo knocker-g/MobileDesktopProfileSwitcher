@@ -55,7 +55,7 @@ B順序は暫定。O-N/O-Sで差がない項目は飛ばす。browserが不整�
 
 各ID×5runで、環境/version/time/network、viewport/DPR/orientation、設定値と実測identity、YouTubeのDesktop/login/playback/Live Chat/error、初回/reload/same-tab/new-tab/restart、echo+一般site 3分類、Default/revoke/rule消去後の復帰、Pass/Fail/Not observedと証拠を記録する。
 
-YouTube A/S1はUA-onlyで全項目を満たし、OFFとの差とfresh-navigation再現を確認した。今回の実機/buildではB/C/Dを省略し、UA-onlyを製品MVP第一候補とする。一般site、lifecycle、product UA/version、CWS検証が残るため全体判定は **CONDITIONAL GO**。Worker/high entropyのinvasive patch、service client spoof、excessive permissionが必要ならNO-GO。
+YouTube A/S1はUA-onlyで全項目を満たし、OFFとの差とfresh-navigation再現を確認した。今回の実機/buildではB/C/Dを省略し、UA-onlyを製品MVP第一候補とする。初期製品UAはChrome 152同一milestone Setとして定義済みだが、その実browser、一般site、lifecycle、CWS検証が残るため全体判定は **CONDITIONAL GO**。Worker/high entropyのinvasive patch、service client spoof、excessive permissionが必要ならNO-GO。
 
 禁止変数: youtubei payload、`clientName`/`clientVersion`、visitorData、Cookie、Authorization、OAuth、service-specific workaround、endpoint別identity、401/403/429起点切替、proxy/IP、randomization。
 
@@ -122,7 +122,7 @@ O-N/O-S established controls and CAP-H passed each independent header. A1 then p
 
 ### Run sheet, gate, and boundaries
 
-YouTube A/S1 passed with UA-only, including OFF contrast and fresh-navigation reproduction. It is the first product-MVP candidate for this device/build, while overall status remains **CONDITIONAL GO** pending general-site, lifecycle, product-UA/version, and CWS validation. Invasive Worker/high-entropy patching, service spoofing, or excessive permission still means NO-GO.
+YouTube A/S1 passed with UA-only, including OFF contrast and fresh-navigation reproduction. It is the first product-MVP candidate for this device/build. Initial product UAs are now defined as one Chrome 152 set, while overall status remains **CONDITIONAL GO** pending its real-browser, general-site, lifecycle, and CWS validation. Invasive Worker/high-entropy patching, service spoofing, or excessive permission still means NO-GO.
 
 The prohibited-variable list is identical to the Japanese section and must never be added to the matrix.
 

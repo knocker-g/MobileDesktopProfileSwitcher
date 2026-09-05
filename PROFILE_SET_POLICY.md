@@ -22,7 +22,11 @@ Mobile
 └─ Android Mobile Chrome N Reduced UA
 ```
 
-DesktopとMobileは必ず同じProfile Set milestoneを使う。個別のversion fieldや独立更新を持たせない。将来の製品コードでは概念的に`PROFILE_SET = { milestone, desktopUserAgent, mobileUserAgent }`として一元管理するが、本decisionではコードを実装しない。
+DesktopとMobileは必ず同じProfile Set milestoneを使う。個別のversion fieldや独立更新を持たせない。製品コードでは`VERIFIED_PROFILE_SET = { milestone, desktopUserAgent, mobileUserAgent }`として`src/core/profiles.js`で一元管理する。
+
+### 初期製品Profile Set
+
+初期製品SetはChrome milestone **152**を採用する。DesktopはWindows Chrome 152 Reduced UA、MobileはAndroid Mobile Chrome 152 Reduced UAで、いずれも`Chrome/152.0.0.0`形式とする。DefaultにはUAを割り当てない。これは製品同梱の初期Setであり、過去のDesktop 154 / Mobile 148 experimental fixtureとは別である。形式、同一milestone、Default無変更は自動testで固定する。Chrome実環境での製品機能Acceptanceは後続Phaseに残る。
 
 ### 動的追従を採用しない理由
 
@@ -45,7 +49,7 @@ Profile Setは製品同梱の既知値である。runtimeにUA profile、latest 
 
 ### Experimental fixturesとの境界
 
-既存実測のDesktop `Chrome/154.0.0.0`とMobile `Chrome/148.0.0.0`は、異なる環境で使用したexperimental fixtureである。これらはObserved resultの証拠として保持するが、同一製品Profile Setとして組み合わせない。最初の製品Profile Set milestoneは別途選定し、Desktop/Mobile双方を同じmilestoneで検証してから確定する。
+既存実測のDesktop `Chrome/154.0.0.0`とMobile `Chrome/148.0.0.0`は、異なる環境で使用したexperimental fixtureである。これらはObserved resultの証拠として保持するが、製品Profile Setへ流用しない。初期製品Setは両方をChrome 152で定義する。
 
 ### 後続設計
 
@@ -73,7 +77,11 @@ Mobile
 └─ Android Mobile Chrome N Reduced UA
 ```
 
-Desktop and Mobile always use the same Profile Set milestone. They do not have independent version fields or update paths. Future product code will conceptually centralize this as `PROFILE_SET = { milestone, desktopUserAgent, mobileUserAgent }`, but this decision does not implement code.
+Desktop and Mobile always use the same Profile Set milestone. They do not have independent version fields or update paths. Product code centralizes them in `src/core/profiles.js` as `VERIFIED_PROFILE_SET = { milestone, desktopUserAgent, mobileUserAgent }`.
+
+### Initial product Profile Set
+
+The initial product set adopts Chrome milestone **152**. Desktop uses a Windows Chrome 152 Reduced UA and Mobile uses an Android Mobile Chrome 152 Reduced UA, both in `Chrome/152.0.0.0` form. Default has no UA assignment. This bundled product set is distinct from the earlier Desktop 154 and Mobile 148 experiment fixtures. Automated tests lock its form, common milestone, and unchanged Default behavior. Functional acceptance in real Chrome environments remains for later phases.
 
 ### Why runtime tracking is rejected
 
@@ -96,7 +104,7 @@ The normal UI exposes only `Default`, `Desktop`, and `Mobile`. Chrome, Windows, 
 
 ### Boundary from experimental fixtures
 
-The observed Desktop `Chrome/154.0.0.0` and Mobile `Chrome/148.0.0.0` values are experimental fixtures used in different environments. Keep them as evidence for the observed results, but never combine them into one product Profile Set. Select the first product milestone separately and validate both Desktop and Mobile at that same milestone before adoption.
+The observed Desktop `Chrome/154.0.0.0` and Mobile `Chrome/148.0.0.0` values are experimental fixtures used in different environments. Keep them as evidence for the observed results, but never promote them into the product Profile Set. The initial product set defines both profiles at Chrome 152.
 
 ### Follow-on design
 
