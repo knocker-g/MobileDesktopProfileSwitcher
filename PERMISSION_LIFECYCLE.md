@@ -39,6 +39,10 @@ DefaultとGlobal OFFでpermissionを保持するのは、登録済みhost group�
 
 popup actionのuser gestureで`chrome.tabs.query()`からactive tabのURLを読み、HTTP(S) hostnameだけをフォームへprefillする。URL、path、query、titleは保存しない。既存hostなら該当Siteとprofileを表示する。新規hostはユーザーがSite名/profileを確認してSaveした別のuser gestureでexact optional permissionを要求する。`activeTab`はhost permissionの代替にはしない。
 
+### Lifecycle PoC
+
+`investigation/permission-lifecycle-probe/`に、DNR/storageを含まないrequest → contains → remove → containsの独立PoCを用意した。PC Chrome実機では、exact hostに対するHTTP/HTTPS同時request、両schemeの`contains() = true`、`remove() = true`、remove後の両schemeの`contains() = false`を観測し、最小cycleをPASSと判定した。Quetta Androidでの単独PoCは未実施であり、同等以上の確認を製品版Android final smokeへ統合できる。
+
 ## English
 
 ### Permission set
@@ -62,3 +66,7 @@ Default and Global OFF retain permission to preserve registered host groups and 
 The MVP adopts option B: use `activeTab` to prefill the current HTTP(S) hostname after action invocation, while keeping manual entry as fallback. Option A alone is lower-permission but burdens mobile users and increases input errors. Option C combines permission, creation, and profile mutation too opaquely and is excluded from MVP.
 
 Use `chrome.tabs.query()` under the popup-action gesture to read the active URL, then prefill only its hostname. Do not store URL, path, query, or title. For an existing host, show its Site and profile. For a new host, a separate Save gesture confirms Site name/profile and requests exact optional permission. `activeTab` never substitutes for persistent host permission.
+
+### Lifecycle PoC
+
+`investigation/permission-lifecycle-probe/` contains an independent request → contains → remove → contains PoC with no DNR or storage. On a PC Chrome device, the minimum cycle passed: one exact-host request covered HTTP and HTTPS, `contains()` was true for both schemes, `remove()` returned true, and post-remove `contains()` was false for both. The standalone Quetta Android PoC remains untested and may be replaced by an equal-or-stronger check in the product Android final smoke.

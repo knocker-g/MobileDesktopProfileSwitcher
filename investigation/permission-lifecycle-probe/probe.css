@@ -1,0 +1,145 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 360px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  width: 360px;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background: Canvas;
+  color: CanvasText;
+}
+
+main {
+  width: 100%;
+  padding: 16px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+h2 {
+  margin: 20px 0 8px;
+  font-size: 1.05rem;
+}
+
+.scope {
+  margin: 0 0 18px;
+  color: GrayText;
+}
+
+label,
+.normalized span:first-child {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 650;
+}
+
+input,
+button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid GrayText;
+  border-radius: 8px;
+  font: inherit;
+}
+
+input {
+  padding: 10px 12px;
+  background: Field;
+  color: FieldText;
+}
+
+.normalized,
+.status {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid GrayText;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.normalized strong {
+  display: block;
+}
+
+.error {
+  display: block;
+  min-height: 1.4em;
+  margin-top: 6px;
+  color: #c62828;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button {
+  padding: 10px;
+  border-color: #2457c5;
+  background: #2457c5;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+button.danger {
+  border-color: #a32121;
+  background: #a32121;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+#operation-result {
+  margin: 12px 0 0;
+  font-weight: 650;
+}
+
+#operation-log {
+  height: 110px;
+  margin: 0;
+  padding-left: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  font-family: ui-monospace, monospace;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}

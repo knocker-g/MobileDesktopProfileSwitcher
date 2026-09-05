@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Permission Lifecycle Probe</title>
+    <link rel="stylesheet" href="probe.css">
+  </head>
+  <body>
+    <main>
+      <h1>Permission Lifecycle Probe</h1>
+      <p class="scope">Research only. No DNR, storage, page access, or external communication.</p>
+
+      <label for="host-input">Host or HTTP(S) URL</label>
+      <input
+        id="host-input"
+        type="text"
+        inputmode="url"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        placeholder="www.youtube.com"
+      >
+
+      <section class="normalized" aria-live="polite">
+        <span>Normalized hostname</span>
+        <strong id="normalized-host">—</strong>
+        <span id="input-error" class="error"></span>
+      </section>
+
+      <div class="actions">
+        <button id="request" type="button">Request permission</button>
+        <button id="check" type="button">Check permission</button>
+        <button id="remove" type="button" class="danger">Remove permission</button>
+      </div>
+
+      <section class="status" aria-live="polite">
+        <h2>Current result</h2>
+        <dl>
+          <dt>Host</dt>
+          <dd id="status-host">—</dd>
+          <dt>HTTPS</dt>
+          <dd id="https-status">Not checked</dd>
+          <dt>HTTP</dt>
+          <dd id="http-status">Not checked</dd>
+        </dl>
+        <p id="operation-result">Ready.</p>
+      </section>
+
+      <section>
+        <h2>Operation log</h2>
+        <ol id="operation-log"></ol>
+      </section>
+    </main>
+    <script src="probe.js"></script>
+  </body>
+</html>

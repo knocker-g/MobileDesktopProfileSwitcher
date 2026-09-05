@@ -86,6 +86,8 @@ MVPは1 Siteに複数の明示hostと1 profileを持ち、同一hostの複数Sit
 
 storageを唯一のsource of truth、DNRをhostごと1本の派生状態とする。stable rule ID、pending mutation journal、startup/UI/update reconciliation、失敗時rollbackと最終fail-closed rule削除を採用する。詳細は`SITE_SETTINGS_MODEL.md`、`PERMISSION_LIFECYCLE.md`、`DNR_RULE_MODEL.md`、`STORAGE_MODEL.md`を正とする。次の実装前確認は、permission request/remove、Global OFF/ON、crash recovery、rule limit、PC/Android UI lifecycleのprototype検証である。
 
+optional permissionの最初の実機gateとして、`investigation/permission-lifecycle-probe/`を用意した。PC Chromeでは、DNRを混ぜずにexact HTTP/HTTPS hostのrequest、contains、remove、再containsの最小cycleがPASSした。Quetta Android単独PoCは未実施だが、製品版Android final smokeで同等以上のpermission lifecycleを確認できるなら省略する。
+
 ## English
 
 ### Objective and baselines
@@ -137,3 +139,5 @@ The reverse Mobile Profile was also observed on PC Chrome at normal viewport. Ap
 The MVP stores multiple explicit hosts and one profile per Site and forbids cross-Site host duplication. Default is persisted but has no rule. Global OFF retains settings and permission while removing every dynamic rule; ON regenerates from storage. Creation commits only after exact permission for every new host; a denied edit preserves the old Site. Deletion releases permission after commit.
 
 Storage is the sole source of truth, and DNR is derived as one rule per host. Use stable rule IDs, a pending-mutation journal, startup/UI/update reconciliation, rollback on failure, and final fail-closed rule removal. `SITE_SETTINGS_MODEL.md`, `PERMISSION_LIFECYCLE.md`, `DNR_RULE_MODEL.md`, and `STORAGE_MODEL.md` are authoritative. Pre-implementation validation now targets permission request/removal, Global OFF/ON, crash recovery, rule limits, and PC/Android UI lifecycle.
+
+The first optional-permission device gate is available at `investigation/permission-lifecycle-probe/`. On PC Chrome, its DNR-free minimum cycle passed for exact HTTP/HTTPS-host request, contains, remove, and post-remove contains. The standalone Quetta Android PoC remains untested, but it may be omitted if the product Android final smoke provides an equal-or-stronger permission-lifecycle check.

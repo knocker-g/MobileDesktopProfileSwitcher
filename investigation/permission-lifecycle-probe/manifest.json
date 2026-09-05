@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "MDPS Permission Lifecycle Probe",
+  "version": "0.1.0",
+  "description": "Research-only probe for exact-host optional permission request, check, and removal.",
+  "permissions": [],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Permission Lifecycle Probe",
+    "default_popup": "probe.html"
+  }
+}
