@@ -49,7 +49,19 @@ UA文字列やProfile Set milestoneはSiteごとに保存しない。製品同�
 
 正規化順序はtrim → URL parserによるhostname抽出/IDNA ASCII化 → ASCII lowercase → trailing dot除去 → 妥当性確認とする。path付きURLもhostへ縮約する。scheme/port単位の設定は作らず、1 host設定はHTTPとHTTPSの両方および全path/portへ同じprofileを適用する。permissionは正規化hostに対する`http://host/*`と`https://host/*`を要求する。
 
+Phase 2の製品domain modelは、少なくとも2 labelを持つDNS hostnameだけをMVP対象とする。Unicode IDNとpunycodeはURL parserで同じASCII punycodeへ正規化して受け付ける。IPv4、IPv6、`localhost`、single-label intranet hostは、permission/rule境界を不用意に広げないため拒否する。完全なHTTP(S) URLに含まれるportは除去するが、schemeなしの`host:port`は曖昧入力として拒否する。trailing dotは1個だけ許容し、複数dotは拒否する。
+
+security上、authorityにuserinfo、percent escape、wildcard、regex metacharacterを含む入力、およびprotocol-relative URLを拒否する。`https://example.com@evil.example/`は`example.com`としても`evil.example`としても採用しない。`https://evil.example/?host=example.com`はbrowser上の実hostである`evil.example`、`https://example.com.evil.example/`はその完全なhostnameを採用する。`example.com/path`は明示的にbare-host + pathとして`example.com`へ縮約する。
+
 同一入力内のduplicateは1件へdeduplicateしてUIで通知する。既存Siteに属するhostは、同じSiteへの重複追加をno-op、別Siteへの追加をvalidation errorとし、競合Site名を表示する。移動は旧Siteから削除した後に新Siteへ追加する明示操作とする。
+
+### Phase 2 domain API
+
+`src/core/`はChrome APIに依存しない。`normalizeHostInput()`、duplicate通知用`normalizeHostInputs()`、`validateProfile()`、`validateSite()`、`validateSiteCollection()`、`addSiteCandidate()`、`updateSiteCandidate()`、`removeSiteCandidate()`を公開する。validated Siteではduplicateを黙って除去せずerrorにする。UI入力準備だけが`normalizeHostInputs()`のdeduplicate結果と通知対象を利用する。
+
+Site IDは`crypto.randomUUID()`が生成するUUID v4形式を検証するが、Phase 2はIDを生成しない。Site名はtrim後1〜80 Unicode code pointsでcontrol characterを拒否する。host entryの`ruleId`は正のsafe integerで、collection全体で一意とし、update後も既存hostのIDを維持する。削除済みIDの非再利用と新規割当は`nextRuleId`を扱う後続transactionの責務である。operationは入力を変更せず、新しくdeep-frozenしたcanonical collectionを返す。storage transaction、permission、rule適用は行わない。
+
+validation failureは単一の`DomainValidationError`とstable `code`で区別する。codeは`invalid_host`、`duplicate_host`、`empty_site_name`、`invalid_site_name`、`empty_hosts`、`unknown_profile`、`invalid_site_id`、`duplicate_site_id`、`invalid_rule_id`、`duplicate_rule_id`、`site_not_found`である。unknown profileもこのerrorを使い、`RangeError`との互換性を維持する。
 
 ### CRUD
 
@@ -92,7 +104,19 @@ Accept a bare host or an HTTP(S) URL. For a URL, omit scheme, port, user info, p
 
 Normalize by trimming, extracting and IDNA-ASCII-serializing the hostname with the URL parser, converting ASCII to lowercase, removing a trailing dot, then validating. Collapse a URL with a path to its hostname. There is no scheme- or port-specific setting: one host setting applies the same profile to both HTTP and HTTPS and every path/port. Request `http://host/*` and `https://host/*` permission for the normalized host.
 
+The Phase 2 product domain model limits the MVP to DNS hostnames with at least two labels. Unicode IDNs and punycode are accepted and canonicalized by the URL parser to the same ASCII punycode. IPv4, IPv6, `localhost`, and single-label intranet hosts are rejected to avoid silently widening permission/rule scope. A port in a complete HTTP(S) URL is discarded; scheme-less `host:port` is rejected as ambiguous. One trailing dot is accepted, while repeated trailing dots are rejected.
+
+For security, reject authority text containing user info, percent escapes, wildcards, regex metacharacters, and protocol-relative URLs. Never interpret `https://example.com@evil.example/` as either `example.com` or an accepted `evil.example`. `https://evil.example/?host=example.com` resolves to its actual host `evil.example`; `https://example.com.evil.example/` retains that complete hostname. `example.com/path` is explicitly accepted as a bare host plus path and collapses to `example.com`.
+
 Deduplicate repeated hosts within one input and notify the user. Re-adding a host to its current Site is a no-op. Adding a host owned by another Site is a validation error that identifies the conflicting Site. Moving a host is an explicit remove-from-old-then-add-to-new operation.
+
+### Phase 2 domain API
+
+`src/core/` is independent of Chrome APIs. It exports `normalizeHostInput()`, notification-oriented `normalizeHostInputs()`, `validateProfile()`, `validateSite()`, `validateSiteCollection()`, `addSiteCandidate()`, `updateSiteCandidate()`, and `removeSiteCandidate()`. A validated Site rejects rather than silently removes a duplicate. Only UI input preparation uses the deduplicated result and duplicate notification from `normalizeHostInputs()`.
+
+Validate Site IDs as UUID v4 values intended to come from `crypto.randomUUID()`, but do not generate them in Phase 2. A Site name is 1–80 Unicode code points after trimming and rejects control characters. Every host entry has a positive safe-integer `ruleId`, unique across the collection and stable for an existing host during update. Non-reuse of deleted IDs and allocation of new IDs belong to the later transaction that owns `nextRuleId`. Operations do not mutate inputs and return newly canonicalized, deep-frozen collections. They perform no storage transaction, permission request, or rule application.
+
+One `DomainValidationError` plus a stable `code` distinguishes `invalid_host`, `duplicate_host`, `empty_site_name`, `invalid_site_name`, `empty_hosts`, `unknown_profile`, `invalid_site_id`, `duplicate_site_id`, `invalid_rule_id`, `duplicate_rule_id`, and `site_not_found`. Unknown profiles use this error while preserving `RangeError` compatibility.
 
 ### CRUD
 

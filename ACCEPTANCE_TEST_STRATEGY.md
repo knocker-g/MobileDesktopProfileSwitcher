@@ -21,6 +21,8 @@ Phase 1以降の標準入口を`npm run verify`とする。外部dependencyを�
 
 同じpure functionをproductionとtestがimportし、テスト用コピーを作らない。Chrome globalをcoreへ直接渡さず、adapter interfaceをfakeで検証する。
 
+Phase 2時点ではhost security case、IDN/punycode、Site/profile/ID/rule ID、Site内・Site間duplicate、immutable CRUDをNode unit testへ統合済みである。Chrome API testやmanual checkはまだ実行しない。
+
 ### Level 2 — PC Chrome Integration Runner
 
 production manifestへtest権限を追加せず、unpacked development packageにだけ含めるtest page/runnerを用いる。`Run PC Acceptance Test`の1回のuser gestureから、入力済みのexact fixture hostについてpermission requestを直ちに開始する。ユーザー操作はbrowser promptの許可1回だけで、そのcallback後は次を直列実行する。
@@ -89,6 +91,8 @@ Use static checks for statically provable properties, unit tests for pure logic,
 From Phase 1 onward, `npm run verify` is the canonical entry point. With no external dependencies, Node's built-in `node:test` plus small inspection scripts validate manifest JSON and JavaScript syntax; forbidden permissions/patterns, secrets, telemetry, and remote endpoints; host normalization and invalid/wildcard rejection; Site/settings/schema/revision and stable IDs; one-milestone Profile Set and unchanged Default; and all DNR/state/failure invariants listed in Japanese.
 
 DNR checks require one exact-host rule, `main_frame` only, `modifyHeaders`, and exactly one `User-Agent` `set`, with no UA-CH, subresource, wildcard, or redirect. State tests cover zero rules under Global OFF, storage regeneration under ON, no rule for Default/missing permission, edit/delete diffs, stable IDs, idempotent reconcile, fail-closed schema mismatch, rollback/journal recovery, cleanup warnings, and rule-limit preflight. Finish with `git diff --check`; any failure exits nonzero and blocks later levels. Production and tests import the same pure functions, and Chrome globals remain behind fakeable adapters.
+
+At Phase 2, Node unit tests already cover hostile host cases, IDN/punycode, Site/profile/ID/rule IDs, within-Site and cross-Site duplicates, and immutable CRUD. Chrome API tests and manual checks have not started.
 
 ### Level 2 — PC Chrome Integration Runner
 

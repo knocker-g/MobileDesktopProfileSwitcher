@@ -4,7 +4,7 @@
 
 viewport を変更せず、ユーザーが許可した site に固定 browser identity profile を適用して Desktop/Mobile Web の通常表示を選択させる Chromium Extension の計画である。
 
-> **現在はMVP Phase 1の製品skeletonとChrome 152 Profile Setまで実装済みで、Site/storage/DNR/UI機能はまだ未実装です。** 本 repository の記述は完全動作、production ready、全Chromium browser対応を意味しません。未検証事項は未検証として扱います。
+> **現在はMVP Phase 2まで完了し、製品skeleton、Chrome 152 Profile Set、Chrome非依存Site domain modelを実装済みです。storage/DNR/permission/UI機能はまだ未実装です。** 本 repository の記述は完全動作、production ready、全Chromium browser対応を意味しません。未検証事項は未検証として扱います。
 
 ### Decision Summary
 
@@ -34,7 +34,7 @@ viewport を変更せず、ユーザーが許可した site に固定 browser id
 
 This repository plans a Chromium extension that leaves the viewport unchanged and applies a fixed browser identity profile to user-approved sites, letting normal site behavior select Desktop or Mobile Web.
 
-> **The MVP Phase 1 product skeleton and Chrome 152 Profile Set are implemented; Site, storage, DNR, and UI functionality are not.** Nothing here claims full operation, production readiness, or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
+> **MVP Phase 2 is complete: the product skeleton, Chrome 152 Profile Set, and Chrome-independent Site domain model are implemented. Storage, DNR, permission, and UI functionality are not.** Nothing here claims full operation, production readiness, or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
 
 ### Decision Summary
 

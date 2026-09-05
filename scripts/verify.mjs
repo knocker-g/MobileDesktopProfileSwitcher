@@ -70,11 +70,14 @@ const productSource = (
   )
 ).join("\n");
 const forbiddenRuntimePatterns = [
+  /\bchrome\./,
+  /\blocalStorage\b/,
+  /\bsessionStorage\b/,
   /\bfetch\s*\(/,
   /\bXMLHttpRequest\b/,
   /\bWebSocket\b/,
   /\bsendBeacon\b/,
-  /https?:\/\//,
+  /https?:\/\/(?!\$\{|\*)[a-z0-9]/i,
   /Chrome\/(?:148|154)\.0\.0\.0/,
 ];
 

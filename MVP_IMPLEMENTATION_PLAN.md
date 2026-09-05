@@ -47,6 +47,7 @@ investigation/
 ### Gateと未確定事項
 
 - Phase 1 gate: Chrome 152のDesktop/Mobile Reduced UAと自動検証を実装済み。real-browser functional acceptanceはPhase 8〜10で行う。
+- Phase 2 gate: DNS/IDN host正規化、Site/profile/ID/rule ID validation、collection duplicate検出、immutable add/update/removeをpure coreとして実装済み。ID生成、schema migration、transactionは後続Phaseに残す。
 - Phase 5 gate: dynamic-rule上限、rule ID上限、regex supportを実環境値と照合する。
 - Phase 8 gate: PC Chromeでactual storage/permission/DNR lifecycleが一括PASSする。
 - Phase 9 gate: PC manual smokeと一度限りのmain-frame wire確認。
@@ -89,6 +90,7 @@ Once Phase 1 starts, the canonical command is `npm run verify`. With no external
 ### Gates and open items
 
 - Phase 1: Chrome 152 Desktop/Mobile Reduced UAs and their automated validation are implemented; real-browser functional acceptance remains in Phases 8–10.
+- Phase 2: DNS/IDN normalization, Site/profile/ID/rule-ID validation, collection duplicate detection, and immutable add/update/remove are implemented in the pure core. ID generation, schema migration, and transactions remain for later phases.
 - Phase 5: verify dynamic-rule and rule-ID limits plus regex support against target environments.
 - Phase 8: pass actual storage/permission/DNR lifecycle in PC Chrome in one run.
 - Phase 9: pass one PC manual smoke and one-time main-frame wire verification.

@@ -1,3 +1,5 @@
+import { DOMAIN_ERROR, DomainValidationError } from "./domain-error.js";
+
 export const PROFILE = Object.freeze({
   DEFAULT: "default",
   DESKTOP: "desktop",
@@ -23,6 +25,10 @@ export function userAgentForProfile(profile) {
     case PROFILE.MOBILE:
       return VERIFIED_PROFILE_SET.mobileUserAgent;
     default:
-      throw new RangeError(`Unknown profile: ${String(profile)}`);
+      throw new DomainValidationError(
+        DOMAIN_ERROR.UNKNOWN_PROFILE,
+        `Unknown profile: ${String(profile)}`,
+        { profile },
+      );
   }
 }
