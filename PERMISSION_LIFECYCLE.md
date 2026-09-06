@@ -1,5 +1,25 @@
 # Permission Lifecycle / Permission lifecycle
 
+## Phase 4 implementation contract (English primary)
+
+Phase 4 implements permission planning as Chrome-independent core logic and isolates the real API behind `createChromePermissionsAdapter(permissionsApi)`. For one canonical hostname, the indivisible product permission set is the exact pair `https://host/*` and `http://host/*`. A host is `fully_granted`, `partial_https`, `partial_http`, or `not_granted`; only the first state is eligible for later DNR generation.
+
+Create planning includes every new Site host in one duplicate-free request. Edit planning includes added hosts only. The plan and pre-request inspection must be prepared before the click handler calls `executePermissionRequest()`. Its first synchronous effect is `permissions.request()`, preserving the direct user gesture; only afterward does it verify every origin with `contains()`. Denial or a failed post-condition blocks the entire Site mutation and best-effort removes only origins newly granted by that attempt. It never removes a pre-existing grant.
+
+Release planning compares the complete validated Site collection before and after mutation. It releases a host only when that host is absent from the resulting storage source of truth. Consequently, Default and Global OFF retain permissions. Removal runs only after the future Site transaction commits and verifies the post-condition with per-origin `contains()`. Failure is reported for later cleanup without restoring a deleted Site or activating a rule.
+
+The adapter accepts an injected permissions API and normalizes rejected `contains`, `request`, and `remove` calls. Core execution validates a plan again before invoking the adapter, so a forged wildcard, broad origin, unrelated host, duplicate origin, or incomplete HTTP/HTTPS set cannot reach the browser API. `inspectStoredSitePermissions()` reports `ready`, `permission_partial`, or `permission_missing_or_revoked` for later reconciliation. The Permissions API exposes current grants but not whether an absent grant was externally revoked or never granted, so the core does not invent that history. Phase 4 adds no listener, service worker, storage integration, DNR, or UI.
+
+## Phase 4実装契約（日本語補足）
+
+Phase 4はpermission planをChrome非依存coreとして実装し、実APIを`createChromePermissionsAdapter(permissionsApi)`の背後へ隔離する。canonical hostname 1件に対する製品permission単位は、exactな`https://host/*`と`http://host/*`の組である。状態は`fully_granted`、`partial_https`、`partial_http`、`not_granted`に分け、後続DNR対象になれるのはfully grantedだけである。
+
+Site作成planは全新規hostを重複なしの1 requestへまとめ、編集planは追加hostだけを含む。planとrequest前inspectionはclick前に準備し、click handlerから`executePermissionRequest()`を呼ぶ。その最初の同期effectが`permissions.request()`なので直接user gestureを維持し、その後に全originを`contains()`で確認する。拒否またはpost-condition不成立ではSite mutation全体を止め、今回新規取得したoriginだけをbest-effortでremoveし、既存grantには触れない。
+
+release planはmutation前後の検証済みSite collection全体を比較し、変更後storage正本に存在しないhostだけを解放する。このためDefaultとGlobal OFFはpermissionを保持する。removeは将来のSite transaction commit後にだけ行い、origin別`contains()`でpost-conditionを確認する。失敗は後続cleanup用に報告し、削除済みSiteを戻したりruleを有効化したりしない。
+
+adapterはpermissions APIを注入可能で、`contains`、`request`、`remove`のrejectを正規化する。coreはadapter呼出し直前にもplanを検証するため、偽造wildcard、broad origin、無関係host、重複origin、不完全なHTTP/HTTPS setはbrowser APIへ到達しない。`inspectStoredSitePermissions()`は後続reconcile向けに`ready`、`permission_partial`、`permission_missing_or_revoked`を返す。Permissions APIは現在grantだけを示し、不在grantが外部revokeか未取得かの履歴は示さないため、coreは推測で区別しない。Phase 4ではlistener、service worker、storage接続、DNR、UIは追加しない。
+
 ## 日本語
 
 ### Permission構成

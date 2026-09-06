@@ -34,3 +34,20 @@ export {
 } from "./storage-schema.js";
 export { createMutationExecutor } from "./transaction.js";
 export { TRANSACTION_ERROR, TransactionError } from "./transaction-error.js";
+export { PERMISSION_ERROR, PermissionError } from "./permission-error.js";
+export {
+  PERMISSION_DECISION,
+  PERMISSION_STATE,
+  SITE_PERMISSION_STATUS,
+  createHostPermissionInspection,
+  createPermissionAcquisitionPlan,
+  exactOriginsForHost,
+  executePermissionRelease,
+  executePermissionRequest,
+  inspectPermissionReadiness,
+  inspectStoredSitePermissions,
+  permissionStateFromGrants,
+  planPermissionRelease,
+  planSiteCreatePermissions,
+  planSiteEditPermissions,
+} from "./permissions.js";

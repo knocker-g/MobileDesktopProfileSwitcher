@@ -75,6 +75,8 @@ validation failureは単一の`DomainValidationError`とstable `code`で区別�
 
 storageの検証済みSite設定が唯一のsource of truthで、DNR ruleとpermission statusは派生状態である。permission grantはbrowserが管理するため、保存値だけをgrantの証拠にせず`chrome.permissions.contains()`で確認する。詳細なpermission transactionは`PERMISSION_LIFECYCLE.md`、rule構造は`DNR_RULE_MODEL.md`を正とする。
 
+Phase 4ではcreate時の全host、edit時の追加hostだけをpermission acquisition planへ変換し、delete/edit後のcollection全体から不要hostをrelease planへ変換するpure logicを実装した。permission取得失敗はcandidate Siteをcommit可能にせず、既存Siteをそのまま維持するdecisionとなる。storage transactionとの接続はまだ行わない。
+
 ## English
 
 ### Decision
@@ -129,3 +131,5 @@ One `DomainValidationError` plus a stable `code` distinguishes `invalid_host`, `
 ### Source of truth and next phase
 
 Validated Site settings in storage are the only source of truth; DNR rules and permission status are derived state. The browser owns permission grants, so stored data never proves a grant—verify it with `chrome.permissions.contains()`. `PERMISSION_LIFECYCLE.md` is authoritative for permission transactions, and `DNR_RULE_MODEL.md` is authoritative for rule structure.
+
+Phase 4 implements pure planning that maps all create hosts and only added edit hosts to acquisition, then derives obsolete-host release from the complete post-edit/delete collection. Failed acquisition never makes the candidate Site committable and leaves the persisted Site unchanged. Connection to the storage transaction remains unimplemented.

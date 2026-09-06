@@ -25,6 +25,8 @@ Phase 2時点ではhost security case、IDN/punycode、Site/profile/ID/rule ID�
 
 Phase 3ではdefault/clone safety、schema分類、Phase 2 Site validation再利用、journal整合、正常commit、stale revision、各write failure、derived apply/rollback failure、残存journalのstartup decision、fail closed、同時mutation直列化とlost update防止をin-memory fakeで自動検証する。Chrome APIや人間確認は含めない。
 
+Phase 4ではexact origin生成、canonical host強制、4状態inspection、multi-host create、added-host-only edit、collection全体からのrelease、Default/Global OFF保持、request denial/rejection/post-condition/cleanup failure、remove failure/post-condition、external revokeをNode unit/contract testへ統合する。PC PoCの既存Observed PASSを根拠とし、新しいmanual testは要求しない。
+
 ### Level 2 — PC Chrome Integration Runner
 
 production manifestへtest権限を追加せず、unpacked development packageにだけ含めるtest page/runnerを用いる。`Run PC Acceptance Test`の1回のuser gestureから、入力済みのexact fixture hostについてpermission requestを直ちに開始する。ユーザー操作はbrowser promptの許可1回だけで、そのcallback後は次を直列実行する。
@@ -97,6 +99,8 @@ DNR checks require one exact-host rule, `main_frame` only, `modifyHeaders`, and 
 At Phase 2, Node unit tests already cover hostile host cases, IDN/punycode, Site/profile/ID/rule IDs, within-Site and cross-Site duplicates, and immutable CRUD. Chrome API tests and manual checks have not started.
 
 At Phase 3, in-memory fakes automatically cover defaults and clone safety, schema classification, reuse of Phase 2 Site validation, journal consistency, normal commits, stale revisions, each write failure, derived apply/rollback failures, startup decisions for residual journals, fail closed, serialized concurrent mutations, and lost-update prevention. No Chrome API or human check is involved.
+
+At Phase 4, Node unit/contract tests cover exact-origin generation, canonical-host enforcement, all four inspection states, multi-host create, added-host-only edit, whole-collection release, retention for Default/Global OFF, request denial/rejection/post-condition/cleanup failure, remove failure/post-condition, and external revocation. The prior PC PoC PASS remains the real-browser evidence; no new manual test is requested.
 
 ### Level 2 — PC Chrome Integration Runner
 

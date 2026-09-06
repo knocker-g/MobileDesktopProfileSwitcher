@@ -49,6 +49,7 @@ investigation/
 - Phase 1 gate: Chrome 152のDesktop/Mobile Reduced UAと自動検証を実装済み。real-browser functional acceptanceはPhase 8〜10で行う。
 - Phase 2 gate: DNS/IDN host正規化、Site/profile/ID/rule ID validation、collection duplicate検出、immutable add/update/removeをpure coreとして実装済み。ID生成、schema migration、transactionは後続Phaseに残す。
 - Phase 3 gate: schema/revision/journal、直列mutation、stale拒否、rollback、startup recovery、fail-closed decisionをChrome非依存coreとfake portで実装済み。Chrome storage adapter、permission、DNRは後続Phaseに残す。
+- Phase 4 gate: exact HTTP/HTTPS permission plan、full/partial/none inspection、user-gesture-first request、post-condition、release、external revoke inspection、注入可能Chrome adapterを実装済み。storage transaction接続、service worker、DNR、UIは後続Phaseに残す。
 - Phase 5 gate: dynamic-rule上限、rule ID上限、regex supportを実環境値と照合する。
 - Phase 8 gate: PC Chromeでactual storage/permission/DNR lifecycleが一括PASSする。
 - Phase 9 gate: PC manual smokeと一度限りのmain-frame wire確認。
@@ -93,6 +94,7 @@ Once Phase 1 starts, the canonical command is `npm run verify`. With no external
 - Phase 1: Chrome 152 Desktop/Mobile Reduced UAs and their automated validation are implemented; real-browser functional acceptance remains in Phases 8–10.
 - Phase 2: DNS/IDN normalization, Site/profile/ID/rule-ID validation, collection duplicate detection, and immutable add/update/remove are implemented in the pure core. ID generation, schema migration, and transactions remain for later phases.
 - Phase 3: schema/revision/journal handling, serialized mutations, stale rejection, rollback, startup recovery, and fail-closed decisions are implemented with Chrome-independent core and fake ports. Chrome storage, permission, and DNR adapters remain for later phases.
+- Phase 4: exact HTTP/HTTPS permission planning, full/partial/absent inspection, user-gesture-first request, post-condition checks, release, external-revoke inspection, and an injectable Chrome adapter are implemented. Storage-transaction orchestration, service worker, DNR, and UI remain for later phases.
 - Phase 5: verify dynamic-rule and rule-ID limits plus regex support against target environments.
 - Phase 8: pass actual storage/permission/DNR lifecycle in PC Chrome in one run.
 - Phase 9: pass one PC manual smoke and one-time main-frame wire verification.
