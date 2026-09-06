@@ -2,6 +2,14 @@
 
 ## Phase 5 implementation contract (English primary)
 
+### Phase 6 runtime connection
+
+One reconciler is reused by module initialization, install, browser startup, committed mutations, recovery, explicit refresh, and permission removal. No entry point constructs rules independently. The exact-host filter remains `|http*://<canonical-host>^`; tests admit HTTP/HTTPS paths and ports and reject subdomains, `host.evil.example`, `evil.host`, and non-HTTP schemes. Separate per-scheme rules would duplicate the same action without narrowing this anchored host boundary.
+
+### Phase 6 runtime接続
+
+module初期化、install、browser startup、commit mutation、recovery、明示refresh、permission removeは同一reconcilerを再利用し、各入口でruleを独自生成しない。exact-host filterは`|http*://<canonical-host>^`を維持する。testはHTTP/HTTPSのpathとportを許可し、subdomain、`host.evil.example`、`evil.host`、HTTP以外のschemeを拒否する。scheme別ruleはanchor済みhost境界を狭めず同じactionを重複させるため採用しない。
+
 Phase 5 derives all product dynamic rules from validated storage plus current permission inspection. Each fully granted Desktop/Mobile host produces one rule with its persisted positive ID, priority `1`, `modifyHeaders`, exactly one request-header `set` for `User-Agent`, and `resourceTypes: ["main_frame"]`. Desktop and Mobile use the bundled Chrome 152 Verified Profile Set. Default, Global OFF, and missing/partial permission produce no rule; permission issues remain deterministic warnings and do not suppress unrelated valid hosts.
 
 The exact-host condition is the non-regex `urlFilter` `|http*://hostname^`. The leading `|` anchors the URL start, `http*` covers HTTP and HTTPS under the granted capability, and `^` requires a URL separator after the canonical hostname, including `/` or `:` for a port. It therefore excludes sibling/superstring/subdomain hosts. There is no `regexFilter`, wildcard subdomain, redirect, response-header mutation, UA-CH mutation, or subresource scope. A pure diagnostic matcher locks the intended HTTP/HTTPS exact-host boundary in tests; actual Chrome matching remains a Level 2 integration assertion.

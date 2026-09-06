@@ -23,10 +23,13 @@ test("optional host permissions are only the designed HTTP(S) capability envelop
   ]);
 });
 
-test("Phase 1 does not expose unfinished extension entry points", () => {
+test("Phase 6 exposes only the module service worker entry point", () => {
+  assert.deepEqual(manifest.background, {
+    service_worker: "src/service-worker.js",
+    type: "module",
+  });
   for (const key of [
     "action",
-    "background",
     "content_scripts",
     "declarative_net_request",
     "options_page",

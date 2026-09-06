@@ -88,6 +88,14 @@ MVP完成までの予定は、PC integration runnerでprompt許可1回、PC manu
 
 ## English
 
+### Phase 6 automated coverage
+
+Level 1 now covers single-key storage, initial state creation, raw preservation, restart recovery, synchronous lifecycle-listener registration, serialized CRUD/global mutations, permission preconditions and post-commit release, external-revoke reconciliation, strict message allowlisting, and arbitrary UA/DNR injection rejection. Existing transaction-to-DNR contracts continue to cover apply failure, rollback, and fail closed. Phase 6 adds no manual browser test.
+
+### Phase 6自動検証範囲
+
+Level 1は単一key storage、初期state生成、raw保持、restart recovery、lifecycle listener同期登録、直列CRUD/global mutation、permission事前条件とcommit後release、external revoke reconcile、厳格なmessage allowlist、任意UA/DNR注入拒否を検証する。既存transaction-to-DNR contractでapply失敗、rollback、fail closedも継続確認する。Phase 6ではmanual browser testを追加しない。
+
 ### Principles and result vocabulary
 
 Use static checks for statically provable properties, unit tests for pure logic, contract/integration tests for Chrome API boundaries, and manual smoke only for display or playback that requires human judgment. Do not repeat the same proof at every level. Automated outcomes are `PASS`/`FAIL`; browser prompts or visual judgment are `MANUAL`; missing environmental prerequisites are `INCONCLUSIVE`. Never convert an unrun check to PASS.

@@ -3,6 +3,10 @@
   "name": "MobileDesktopProfileSwitcher",
   "version": "0.1.0",
   "description": "Apply a verified Desktop or Mobile browser profile to user-approved sites without changing the viewport.",
+  "background": {
+    "service_worker": "src/service-worker.js",
+    "type": "module"
+  },
   "permissions": [
     "storage",
     "declarativeNetRequestWithHostAccess",

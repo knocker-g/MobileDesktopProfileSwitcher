@@ -69,6 +69,14 @@ popup actionのuser gestureで`chrome.tabs.query()`からactive tabのURLを読�
 
 ## English
 
+### Phase 6 runtime connection
+
+The service worker registers `permissions.onRemoved` synchronously and reconciles from storage, stopping rules for hosts that are no longer fully granted while retaining Site settings. Startup and explicit reconcile are fallback paths. The backend never requests permission. A future UI must invoke the Phase 4 request operation directly from its click handler, verify the post-condition, and only then send a commit command. Deletion commits storage and DNR before best-effort exact-origin release; cleanup failure is a retryable warning and does not restore the deleted Site.
+
+### Phase 6 runtime接続
+
+service workerは`permissions.onRemoved`を同期登録し、storageからreconcileしてfull grantでなくなったhostのruleを停止しつつSite設定を保持する。startupと明示reconcileもfallbackとなる。backendはpermission requestを行わない。将来UIはclick handlerからPhase 4 request処理を直接呼び、post-condition確認後だけcommit commandを送る。削除ではstorageとDNRをcommitした後にexact-originをbest-effort解放し、cleanup失敗は削除Siteを復活させない再試行可能warningとする。
+
 ### Permission set
 
 MVP API permissions are `storage`, `declarativeNetRequestWithHostAccess`, and `activeTab`. `activeTab` is used only after the user invokes the action popup to read the current tab URL and prefill a host input. Do not request `tabs`, `scripting`, `webRequest`, `cookies`, `debugger`, or `declarativeNetRequestFeedback`.

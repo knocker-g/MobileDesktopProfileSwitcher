@@ -59,6 +59,14 @@ Phase 5でderived-state portへDNR reconcilerを接続した。`apply(nextState)
 
 ## English
 
+### Phase 6 runtime connection
+
+The complete canonical state is stored under one `mdpsState` key in `chrome.storage.local`. Only an absent key is initialized with the default state. Corrupt or unsupported raw values are preserved and cause fail closed. Module evaluation, install, browser startup, recovery, and explicit refresh reuse the same storage-authoritative reconcile path. Every mutation uses the Phase 3 serialized executor and expected revision; memory is not authoritative.
+
+### Phase 6 runtime接続
+
+canonical state全体を`chrome.storage.local`の単一`mdpsState` keyへ保存する。key不在時だけdefault stateで初期化する。corruptまたはunsupportedなraw値は保持し、fail closedとする。module初期評価、install、browser startup、recovery、明示refreshは同じstorage正本のreconcile経路を再利用する。全mutationはPhase 3の直列executorとexpected revisionを使い、memoryを正本にしない。
+
 ### Keys and authority
 
 Use only `chrome.storage.local`. `settings` is the sole configuration source of truth; `pendingMutation` is a crash-recovery journal, and `health` is non-secret diagnostic state. Never persist DNR or permission listings as authority.

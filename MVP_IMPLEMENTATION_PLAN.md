@@ -59,6 +59,14 @@ investigation/
 
 ## English
 
+### Phase 6 runtime implementation note
+
+Phase 6 adds the module service worker, a single-key Chrome storage adapter, startup recovery, serialized Site/profile/global mutations, post-commit permission release, permission-revoke reconciliation, and an allowlisted message boundary. Permission acquisition remains a direct future-UI user-gesture operation and is never initiated by the backend. Settings and action UI remain unimplemented.
+
+### Phase 6 runtime実装注記
+
+Phase 6ではmodule service worker、単一keyのChrome storage adapter、startup recovery、直列化されたSite/profile/global mutation、commit後permission release、permission revoke時reconcile、allowlist方式のmessage境界を追加する。permission取得は将来UIの直接user gesture操作として残し、backendから開始しない。settings/action UIは未実装である。
+
 ### Objective and fixed boundary
 
 This document divides the product MVP into small, reviewable commits. Product identities are `Default`, `Desktop`, and `Mobile`; Desktop and Mobile use one Verified Profile Set at the same milestone. The only mutation is `User-Agent` on `main_frame` for explicit hosts. UA-CH, JavaScript/Worker identity, viewport, subresources, redirects, URL rewriting, and remote configuration remain out of scope.
