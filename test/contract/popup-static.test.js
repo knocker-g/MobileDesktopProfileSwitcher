@@ -64,6 +64,24 @@ test("responsive CSS avoids viewport-sized feedback loops and horizontal overflo
   assert.match(css, /min-height:\s*44px/);
 });
 
+test("current, add, and edit controls use a narrow-safe one-column layout", () => {
+  assert.doesNotMatch(css, /grid-template-columns:\s*repeat\(3|text-overflow:\s*ellipsis|overflow-x:\s*(?:auto|scroll)/);
+  assert.match(css, /\.profile-control\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(css, /\.host-row\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(css, /\.actions\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(css, /button, input\s*\{[^}]*width:\s*100%[^}]*min-width:\s*0/s);
+  assert.match(css, /\.hostname\s*\{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.doesNotMatch(css, /body\s*\{[^}]*min-width:\s*(?:[2-9]\d\d|\d{4,})px/s);
+});
+
+test("profile and host editors expose full-width accessible controls", () => {
+  assert.match(js, /paragraph\("Profile", "control-label"\)/);
+  assert.match(js, /profileButtons\(profiles, model\.currentSite\.profile/);
+  assert.match(js, /profileButtons\(elements\.formProfiles, form\.profile/);
+  assert.match(js, /addHostRow\(form\)/);
+  assert.match(js, /remove\.setAttribute\("aria-label", `Remove host \$\{index \+ 1\}`\)/);
+});
+
 test("popup controller sends only allowlisted typed runtime commands", () => {
   assert.doesNotMatch(js, /userAgent|addRules|ruleId|rawState/);
   for (const type of ["GET_STATE", "INSPECT_PERMISSIONS", "SET_PROFILE", "SET_ENABLED", "CREATE_SITE", "UPDATE_SITE", "DELETE_SITE", "RECONCILE"]) assert.match(js, new RegExp(`MESSAGE_TYPE\\.${type}`));

@@ -28,3 +28,21 @@ test("no added host performs no permission API call", async () => {
   assert.equal(await requestExactHostAccess([], { requestOrigins() { called = true; } }), true);
   assert.equal(called, false);
 });
+
+test("two-host Save permission plan requests both exact hosts in one user action", async () => {
+  const calls = [];
+  const hosts = ["www.youtube.com", "m.youtube.com"];
+  const port = {
+    requestOrigins(origins) { calls.push(origins); return Promise.resolve(true); },
+    async inspectHosts(inspected) {
+      return inspected.map((hostname) => createHostPermissionInspection(hostname, { https: true, http: true }));
+    },
+  };
+  assert.equal(await requestExactHostAccess(hosts, port), true);
+  assert.deepEqual(calls, [[
+    "https://www.youtube.com/*",
+    "http://www.youtube.com/*",
+    "https://m.youtube.com/*",
+    "http://m.youtube.com/*",
+  ]]);
+});

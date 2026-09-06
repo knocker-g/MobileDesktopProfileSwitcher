@@ -82,6 +82,22 @@ test("create rejects missing permission without storage mutation", async () => {
   assert.equal(storage.rawState().revision, 0);
 });
 
+test("backend persists both explicit hosts from one Site candidate", async () => {
+  const permissions = permissionPort([
+    "https://www.youtube.com/*", "http://www.youtube.com/*",
+    "https://m.youtube.com/*", "http://m.youtube.com/*",
+  ]);
+  const { backend, storage } = setup(createDefaultState(), permissions);
+  await backend.createSite({
+    expectedRevision: 0,
+    site: { name: "YouTube", profile: PROFILE.DESKTOP, hosts: ["www.youtube.com", "m.youtube.com"] },
+  });
+  assert.deepEqual(storage.rawState().sites[0].hosts, [
+    { hostname: "www.youtube.com", ruleId: 1 },
+    { hostname: "m.youtube.com", ruleId: 2 },
+  ]);
+});
+
 test("edit rejects an ungranted added host and preserves the existing Site", async () => {
   const permissions = permissionPort(["https://example.com/*", "http://example.com/*"]);
   const { backend, storage } = setup(createDefaultState(), permissions);

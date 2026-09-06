@@ -161,6 +161,7 @@ function renderCurrent() {
       paragraph(model.currentSite.name, "site-name"),
       paragraph(model.hostname, "hostname"),
     );
+    elements.currentContent.append(paragraph("Profile", "control-label"));
     const profiles = document.createElement("div");
     profiles.className = "profile-control";
     profileButtons(profiles, model.currentSite.profile, !state.enabled || busy, quickProfile);
@@ -189,7 +190,12 @@ function renderCurrent() {
     const item = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
-    button.append(document.createTextNode(site.name), document.createTextNode(labelProfile(site.profile)));
+    const name = document.createElement("span");
+    name.textContent = site.name;
+    const selectedProfile = document.createElement("span");
+    selectedProfile.className = "site-list-profile";
+    selectedProfile.textContent = labelProfile(site.profile);
+    button.append(name, selectedProfile);
     button.addEventListener("click", () => openForm(createSiteForm({ site })));
     item.append(button);
     elements.siteList.append(item);
@@ -229,6 +235,7 @@ function renderForm() {
     remove.type = "button";
     remove.className = "secondary";
     remove.textContent = "Remove";
+    remove.setAttribute("aria-label", `Remove host ${index + 1}`);
     remove.disabled = form.hosts.length <= 1;
     remove.addEventListener("click", () => {
       syncFormFromDom();

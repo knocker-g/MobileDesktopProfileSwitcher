@@ -87,3 +87,25 @@ test("host row add/remove operations are immutable and keep one required row", (
   assert.strictEqual(removeHostRow(original, 0), original);
   assert.deepEqual(original.hosts, ["example.com"]);
 });
+
+test("a current host can be extended with a second arbitrary canonical host", () => {
+  const initial = createSiteForm({ hostname: "www.youtube.com" });
+  const withEmptySecondRow = addHostRow(initial);
+  assert.deepEqual(withEmptySecondRow.hosts, ["www.youtube.com", ""]);
+
+  const edited = { ...withEmptySecondRow, name: "YouTube", profile: PROFILE.DESKTOP, hosts: [withEmptySecondRow.hosts[0], "m.youtube.com"] };
+  const result = validateSiteForm(edited);
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.value, {
+    name: "YouTube",
+    profile: PROFILE.DESKTOP,
+    hosts: ["www.youtube.com", "m.youtube.com"],
+  });
+});
+
+test("popup model preserves a long canonical hostname without truncating its value", () => {
+  const hostname = "a-very-long-explicit-hostname-for-narrow-popup.example.com";
+  const model = createPopupModel({ ...state(), sites: [] }, `https://${hostname}/path`, []);
+  assert.equal(model.hostname, hostname);
+  assert.equal(createSiteForm({ hostname }).hosts[0], hostname);
+});
