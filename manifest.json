@@ -7,6 +7,10 @@
     "service_worker": "src/service-worker.js",
     "type": "module"
   },
+  "action": {
+    "default_title": "MDPS",
+    "default_popup": "src/ui/popup.html"
+  },
   "permissions": [
     "storage",
     "declarativeNetRequestWithHostAccess",

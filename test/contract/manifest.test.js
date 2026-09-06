@@ -29,7 +29,6 @@ test("Phase 6 exposes only the module service worker entry point", () => {
     type: "module",
   });
   for (const key of [
-    "action",
     "content_scripts",
     "declarative_net_request",
     "options_page",
@@ -37,4 +36,13 @@ test("Phase 6 exposes only the module service worker entry point", () => {
   ]) {
     assert.equal(Object.hasOwn(manifest, key), false, `${key} must be absent`);
   }
+});
+
+test("Phase 7 exposes only the single popup action UI", () => {
+  assert.deepEqual(manifest.action, {
+    default_title: "MDPS",
+    default_popup: "src/ui/popup.html",
+  });
+  assert.equal(Object.hasOwn(manifest, "options_page"), false);
+  assert.equal(Object.hasOwn(manifest, "options_ui"), false);
 });

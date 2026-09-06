@@ -67,6 +67,12 @@ Phase 6 adds the module service worker, a single-key Chrome storage adapter, sta
 
 Phase 6ではmodule service worker、単一keyのChrome storage adapter、startup recovery、直列化されたSite/profile/global mutation、commit後permission release、permission revoke時reconcile、allowlist方式のmessage境界を追加する。permission取得は将来UIの直接user gesture操作として残し、backendから開始しない。settings/action UIは未実装である。
 
+### Phase 7 Single Popup implementation note
+
+The previously separate Settings UI and action/current-host plan is consolidated into one responsive Single Popup commit. It contains Current Site, Other Sites, and Add/Edit views; there is no options page. `activeTab` supplies only transient current URL access for canonical-host lookup and prefill. Form/domain logic and permission gesture sequencing are automated without adding `tabs` or another API permission.
+
+従来分離していたSettings UIとaction/current-host計画を、responsive Single Popupの1 commitへ統合する。Current Site、Other Sites、Add/Edit viewを含み、options pageは作らない。`activeTab`はcanonical host照合とprefillのための一時的なcurrent URL取得だけに使う。form/domain logicとpermission gesture順序を自動検証し、`tabs`その他API permissionを追加しない。
+
 ### Objective and fixed boundary
 
 This document divides the product MVP into small, reviewable commits. Product identities are `Default`, `Desktop`, and `Mobile`; Desktop and Mobile use one Verified Profile Set at the same milestone. The only mutation is `User-Agent` on `main_frame` for explicit hosts. UA-CH, JavaScript/Worker identity, viewport, subresources, redirects, URL rewriting, and remote configuration remain out of scope.

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MDPS</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main id="app" aria-busy="true">
+    <header class="app-header">
+      <strong>MDPS</strong>
+      <button id="global-toggle" type="button" class="toggle" disabled>Loading…</button>
+    </header>
+
+    <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <section id="current-view" hidden>
+      <h1>Current site</h1>
+      <div id="current-content"></div>
+      <details id="other-sites">
+        <summary id="other-sites-summary"></summary>
+        <ul id="site-list" class="site-list"></ul>
+      </details>
+    </section>
+
+    <section id="form-view" hidden>
+      <h1 id="form-title">Add site</h1>
+      <form id="site-form" novalidate>
+        <label for="site-name">Name</label>
+        <input id="site-name" name="name" autocomplete="off" maxlength="80">
+
+        <fieldset>
+          <legend>Hosts</legend>
+          <div id="host-list" class="host-list"></div>
+          <button id="add-host" type="button" class="secondary">+ Add host</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Profile</legend>
+          <div id="form-profiles" class="profile-control"></div>
+        </fieldset>
+
+        <div id="remove-area" class="remove-area" hidden>
+          <button id="start-remove" type="button" class="danger-link">Remove site</button>
+          <div id="remove-confirm" hidden>
+            <p>Remove this site?</p>
+            <div class="actions">
+              <button id="cancel-remove" type="button" class="secondary">Cancel</button>
+              <button id="confirm-remove" type="button" class="danger">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions sticky-actions">
+          <button id="cancel-form" type="button" class="secondary">Cancel</button>
+          <button id="save-site" type="submit">Save</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

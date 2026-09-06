@@ -34,13 +34,13 @@ viewport を変更せず、ユーザーが許可した site に固定 browser id
 
 This repository plans a Chromium extension that leaves the viewport unchanged and applies a fixed browser identity profile to user-approved sites, letting normal site behavior select Desktop or Mobile Web.
 
-> **MVP Phase 6 is complete: the product skeleton, Chrome 152 Profile Set, core/adapters, Chrome storage adapter, and service-worker runtime orchestration are implemented. Product UI and real-browser acceptance are not.** Nothing here claims full operation, production readiness, or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
+> **MVP Phase 7 is complete: the product skeleton, Chrome 152 Profile Set, runtime orchestration, and responsive English-only Single Popup UI are implemented. Real-browser acceptance is not complete.** Nothing here claims production readiness or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
 
 ### Decision Summary
 
 - MVP profiles: `Default`, `Desktop`, and `Mobile`. The initial product set is Chrome 152 and supplies both UAs at the same milestone; Default makes no UA change.
 - MVP permissions: `storage`, `declarativeNetRequestWithHostAccess`, `activeTab` limited to current-host prefill, and optional host permission for exact runtime grants. Exclude `tabs`, `scripting`, and install-time host grants.
-- Architecture: popup/settings → storage-authoritative Site (multiple explicit hosts plus one profile) → exact user grant → one DNR dynamic rule per host → reload. Global OFF removes every rule. The Profile Set is bundled with no external lookup.
+- Architecture: Single Popup → storage-authoritative Site (multiple explicit hosts plus one profile) → exact user grant → one DNR dynamic rule per host → reload. Global OFF removes every rule. The Profile Set is bundled with no external lookup.
 - Risks: intentional UA versus UA-CH/JavaScript/Worker inconsistency, Android Chromium API differences, permission/storage/DNR lifecycle, rule limits, and changing YouTube detection.
 - Implementation gates: the minimum PC exact-host permission cycle and Phase 1 automation pass. Chrome 152 real-browser acceptance, Global OFF/ON, storage/DNR rollback and recovery, rule limits, PC/Android product lifecycle, and CWS review remain.
 - Verification separates pure core from Chrome adapters and proceeds through Level 1 Static/Unit, Level 2 PC integration runner, Level 3 PC manual smoke, and Level 4 Android/Quetta final smoke. The manual budget is one or two PC sessions and one final Android session.

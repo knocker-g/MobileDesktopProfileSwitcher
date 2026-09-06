@@ -39,7 +39,18 @@ function run(command, args, label) {
 const files = (await Promise.all(checkedRoots.map(collectFiles))).flat();
 const JavaScriptFiles = files.filter((file) => /\.(?:js|mjs)$/.test(file));
 
-JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8"));
+const manifest = JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8"));
+const popupPath = manifest.action?.default_popup;
+if (popupPath !== "src/ui/popup.html") throw new Error("Single popup manifest entry is missing");
+const popupHtml = await readFile(path.join(root, popupPath), "utf8");
+const popupCss = await readFile(path.join(root, "src/ui/popup.css"), "utf8");
+if (!/<script type="module" src="popup\.js"><\/script>/.test(popupHtml)) {
+  throw new Error("Popup module script entry is invalid");
+}
+if (/https?:\/\//i.test(popupHtml) || /\b(?:100)?v[wh]\b/.test(popupCss)) {
+  throw new Error("Popup contains a remote URL or unstable viewport sizing");
+}
+console.log("PASS popup HTML/CSS/manifest contract");
 const packageMetadata = JSON.parse(
   await readFile(path.join(root, "package.json"), "utf8"),
 );
@@ -70,7 +81,6 @@ const productSource = (
   )
 ).join("\n");
 const forbiddenRuntimePatterns = [
-  /\bchrome\./,
   /\blocalStorage\b/,
   /\bsessionStorage\b/,
   /\bfetch\s*\(/,
@@ -87,6 +97,17 @@ for (const pattern of forbiddenRuntimePatterns) {
   }
 }
 console.log("PASS no remote configuration, telemetry, or experiment fixture");
+
+const chromeIndependentFiles = productJavaScriptFiles.filter(
+  (file) => !file.endsWith(`${path.sep}service-worker.js`) && !file.endsWith(`${path.sep}ui${path.sep}popup.js`),
+);
+for (const file of chromeIndependentFiles) {
+  const content = await readFile(path.join(root, file), "utf8");
+  if (/\bchrome\./.test(content)) {
+    throw new Error(`Global Chrome API escaped its entry-point boundary: ${file}`);
+  }
+}
+console.log("PASS Chrome API entry-point boundary");
 
 const forbiddenDnrProductPatterns = [
   /Sec-CH-UA/i,

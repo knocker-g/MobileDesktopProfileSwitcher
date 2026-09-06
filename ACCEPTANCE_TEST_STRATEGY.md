@@ -96,6 +96,14 @@ Level 1 now covers single-key storage, initial state creation, raw preservation,
 
 Level 1は単一key storage、初期state生成、raw保持、restart recovery、lifecycle listener同期登録、直列CRUD/global mutation、permission事前条件とcommit後release、external revoke reconcile、厳格なmessage allowlist、任意UA/DNR注入拒否を検証する。既存transaction-to-DNR contractでapply失敗、rollback、fail closedも継続確認する。Phase 6ではmanual browser testを追加しない。
 
+### Phase 7 automated coverage
+
+Level 1 covers current-host normalization, registered/unregistered/unsupported views, Global OFF and permission-warning models, deterministic Other Sites, Add/Edit form initialization and validation, immutable host-row operations, direct exact-origin permission sequencing, active-tab adapter scope, English-only semantic markup, responsive CSS invariants, manifest popup linkage, and absence of custom identity controls. Actual layout and permission-prompt appearance remain consolidated into Phase 8 PC acceptance and the final Android gate.
+
+### Phase 7自動検証範囲
+
+Level 1はcurrent host正規化、登録済み/未登録/未対応view、Global OFFとpermission warning model、deterministicなOther Sites、Add/Edit form初期化とvalidation、immutable host row操作、exact-origin permission直接実行順、active-tab adapter範囲、英語のみのsemantic markup、responsive CSS invariant、Manifest popup接続、custom identity control不在を検証する。実layoutとpermission prompt表示はPhase 8 PC acceptanceと最終Android gateへ集約する。
+
 ### Principles and result vocabulary
 
 Use static checks for statically provable properties, unit tests for pure logic, contract/integration tests for Chrome API boundaries, and manual smoke only for display or playback that requires human judgment. Do not repeat the same proof at every level. Automated outcomes are `PASS`/`FAIL`; browser prompts or visual judgment are `MANUAL`; missing environmental prerequisites are `INCONCLUSIVE`. Never convert an unrun check to PASS.

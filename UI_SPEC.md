@@ -22,6 +22,22 @@ UI controllerはChrome APIを直接呼ばずadapter経由とし、状態表示�
 
 ## English
 
+### Phase 7 Single Popup decision
+
+MVP uses one English-only action popup and no separate Settings/options page. Its internal views are Current Site, collapsed Other Sites, and a shared Add/Edit form. Current Site and its `Default`/`Desktop`/`Mobile` control remain first; Global OFF disables profile application without hiding the saved selection. Unsupported active-tab URLs show `This page cannot be added.` and no full URL or title is persisted.
+
+The popup uses a single-column, width-flexible layout, no viewport-relative sizing, no horizontal scrolling, approximately 44 CSS-pixel controls, 16px inputs, visible keyboard focus, semantic buttons/labels, `aria-pressed`, live status, and alert errors. A bounded desktop width and a narrow-width media rule avoid the self-referential viewport sizing that caused the investigation popup oscillation.
+
+Save synchronously validates with the shared domain model, then invokes exact HTTP/HTTPS permission request as its first asynchronous Chrome effect. Only after request and `contains` post-check succeed does it send the allowlisted runtime commit. Edit requests added hosts only. Grant Access follows the same direct gesture boundary. Deletion uses inline confirmation; permission cleanup warnings do not undo committed deletion.
+
+### Phase 7 Single Popup決定
+
+MVPは英語のみのaction popup 1つを使い、別Settings/options pageを設けない。内部viewはCurrent Site、折りたたみOther Sites、共通Add/Edit formとする。Current Siteと`Default`/`Desktop`/`Mobile`切替を最上位に置き、Global OFF時も保存済み選択を隠さずprofile適用だけを無効化する。未対応active-tab URLでは`This page cannot be added.`を表示し、full URLやtitleを保存しない。
+
+popupは1カラム、可変幅、viewport相対sizeなし、横scrollなし、概ね44 CSS pxのcontrol、16px input、visible keyboard focus、semantic button/label、`aria-pressed`、live status、alert errorを使用する。desktop最大幅と狭幅media ruleにより、調査popupで起きた自己参照的viewport size oscillationを避ける。
+
+Saveは共通domain modelで同期validationし、その直後の最初の非同期Chrome effectとしてexact HTTP/HTTPS permission requestを呼ぶ。requestと`contains` post-check成功後だけallowlist済みruntime commitを送る。Editは追加hostだけをrequestし、Grant Accessも同じ直接gesture境界を使う。削除はinline confirmationとし、permission cleanup warningでcommit済み削除を戻さない。
+
 The action popup is a single column with no horizontal scrolling and all primary actions visible on one screen. It contains the product name, Global ON/OFF, Current Host, registration state, current profile, large `Default`/`Desktop`/`Mobile` choices, `Add current host` or `Apply & Reload`, and a short permission/status message.
 
 Use at least 44×44 CSS-pixel targets, roughly 16px body text, keyboard operation, visible focus rings, and state indicators not based on color alone. Keep the desktop popup compact (about 320–400 CSS px). On unsupported URLs (`chrome://`, extension pages, unapproved file URLs), disable Apply and explain why.
