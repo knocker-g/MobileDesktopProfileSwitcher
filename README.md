@@ -34,7 +34,7 @@ viewport を変更せず、ユーザーが許可した site に固定 browser id
 
 This repository plans a Chromium extension that leaves the viewport unchanged and applies a fixed browser identity profile to user-approved sites, letting normal site behavior select Desktop or Mobile Web.
 
-> **MVP Phase 7 is complete: the product skeleton, Chrome 152 Profile Set, runtime orchestration, and responsive English-only Single Popup UI are implemented. Real-browser acceptance is not complete.** Nothing here claims production readiness or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
+> **MVP Phase 8 preflight is prepared: the product, responsive Single Popup, zero-dependency acceptance preflight, and consolidated PC checklist are committed. The PC manual acceptance result is still pending.** Nothing here claims production readiness or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
 
 ### Decision Summary
 

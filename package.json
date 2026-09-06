@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "acceptance:preflight": "node scripts/acceptance-preflight.mjs",
     "test": "node --test",
     "verify": "node scripts/verify.mjs"
   },

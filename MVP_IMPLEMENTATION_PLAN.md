@@ -73,6 +73,12 @@ The previously separate Settings UI and action/current-host plan is consolidated
 
 従来分離していたSettings UIとaction/current-host計画を、responsive Single Popupの1 commitへ統合する。Current Site、Other Sites、Add/Edit viewを含み、options pageは作らない。`activeTab`はcanonical host照合とprefillのための一時的なcurrent URL取得だけに使う。form/domain logicとpermission gesture順序を自動検証し、`tabs`その他API permissionを追加しない。
 
+### Phase 8 PC acceptance preparation
+
+Phase 8 adds a zero-dependency `acceptance:preflight` command and one consolidated PC checklist. Preflight rechecks product assets, manifest/permission boundaries, Profile Set 152, exact-origin and exact-host semantics, DNR shape, no options/content scripts, and forbidden code/capabilities. It does not automate Chrome UI or permission prompts. One later human session covers only real popup rendering, exact-host prompt presentation, YouTube Desktop/Mobile/Default behavior, three bounded main-document UA observations, Global OFF/ON, reload recovery, external revoke/regrant, and final deletion.
+
+Phase 8ではzero-dependencyの`acceptance:preflight` commandと1回に集約したPC checklistを追加する。preflightは製品asset、Manifest/permission境界、Profile Set 152、exact-origin/exact-host semantics、DNR shape、options/content script不在、禁止code/capabilityを再検査する。Chrome UIやpermission promptは自動操作しない。後続の人手sessionでは実popup表示、exact-host prompt、YouTube Desktop/Mobile/Default、main document UA 3点だけ、Global OFF/ON、reload recovery、external revoke/regrant、最終削除だけを確認する。
+
 ### Objective and fixed boundary
 
 This document divides the product MVP into small, reviewable commits. Product identities are `Default`, `Desktop`, and `Mobile`; Desktop and Mobile use one Verified Profile Set at the same milestone. The only mutation is `User-Agent` on `main_frame` for explicit hosts. UA-CH, JavaScript/Worker identity, viewport, subresources, redirects, URL rewriting, and remote configuration remain out of scope.

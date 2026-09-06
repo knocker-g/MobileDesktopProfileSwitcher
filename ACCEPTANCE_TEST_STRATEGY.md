@@ -104,6 +104,12 @@ Level 1 covers current-host normalization, registered/unregistered/unsupported v
 
 Level 1はcurrent host正規化、登録済み/未登録/未対応view、Global OFFとpermission warning model、deterministicなOther Sites、Add/Edit form初期化とvalidation、immutable host row操作、exact-origin permission直接実行順、active-tab adapter範囲、英語のみのsemantic markup、responsive CSS invariant、Manifest popup接続、custom identity control不在を検証する。実layoutとpermission prompt表示はPhase 8 PC acceptanceと最終Android gateへ集約する。
 
+### Phase 8 preflight and manual boundary
+
+`npm run acceptance:preflight` is a static release-safety runner, not a privileged browser harness. It performs 15 deterministic checks without new dependencies or Manifest permissions. `PC_ACCEPTANCE_CHECKLIST.md` then compresses all Chrome-only evidence into one session and permits a one-line PASS report. Live Chat may be skipped when no suitable live page exists; manual permission-release UI inspection may be skipped when Chrome does not expose the entry simply. No other required result is inferred.
+
+`npm run acceptance:preflight`は権限付きbrowser harnessではなくstatic release-safety runnerである。dependencyやManifest permissionを追加せず15件を決定的に検査する。続いて`PC_ACCEPTANCE_CHECKLIST.md`がChromeでしか得られないevidenceを1 sessionへ圧縮し、成功報告を1行にする。適切なlive pageがなければLive Chatを、Chromeがentryを容易に表示しなければpermission releaseのUI目視だけをSKIPできる。それ以外の必須結果は推測しない。
+
 ### Principles and result vocabulary
 
 Use static checks for statically provable properties, unit tests for pure logic, contract/integration tests for Chrome API boundaries, and manual smoke only for display or playback that requires human judgment. Do not repeat the same proof at every level. Automated outcomes are `PASS`/`FAIL`; browser prompts or visual judgment are `MANUAL`; missing environmental prerequisites are `INCONCLUSIVE`. Never convert an unrun check to PASS.
