@@ -14,13 +14,43 @@ import { requestExactHostAccess } from "./popup-actions.js";
 
 const activeTab = createActiveTabAdapter(chrome.tabs);
 const permissions = createChromePermissionsAdapter(chrome.permissions);
-const elements = Object.fromEntries([
-  "app", "global-toggle", "status", "error", "current-view", "current-content",
-  "other-sites", "other-sites-summary", "site-list", "form-view", "form-title",
-  "site-form", "site-name", "host-list", "add-host", "form-profiles", "remove-area",
-  "start-remove", "remove-confirm", "cancel-remove", "confirm-remove", "cancel-form",
-  "save-site",
-].map((id) => [id, document.getElementById(id)]));
+const popupElementIds = Object.freeze({
+  app: "app",
+  globalToggle: "global-toggle",
+  status: "status",
+  error: "error",
+  currentView: "current-view",
+  currentContent: "current-content",
+  otherSites: "other-sites",
+  otherSitesSummary: "other-sites-summary",
+  siteList: "site-list",
+  formView: "form-view",
+  formTitle: "form-title",
+  siteForm: "site-form",
+  siteName: "site-name",
+  hostList: "host-list",
+  addHost: "add-host",
+  formProfiles: "form-profiles",
+  removeArea: "remove-area",
+  startRemove: "start-remove",
+  removeConfirm: "remove-confirm",
+  cancelRemove: "cancel-remove",
+  confirmRemove: "confirm-remove",
+  cancelForm: "cancel-form",
+  saveSite: "save-site",
+});
+
+const elements = Object.freeze(Object.fromEntries(
+  Object.entries(popupElementIds).map(([property, id]) => {
+    const element = document.getElementById(id);
+    if (!element) throw new Error(`Missing popup element: ${id}`);
+    return [property, element];
+  }),
+));
+
+if (elements.saveSite.form !== elements.siteForm) {
+  throw new Error("Popup save button is not associated with the site form.");
+}
 
 let state = null;
 let model = null;
