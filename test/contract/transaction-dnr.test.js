@@ -15,10 +15,10 @@ import { MemoryStoragePort } from "../helpers/fakes.js";
 const MUTATION_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const SITE_ID = "11111111-1111-4111-8111-111111111111";
 
-function state(profile = "desktop") {
+function state(profile = "desktop", hosts = [{ hostname: "example.com", ruleId: 1 }]) {
   return {
-    ...createDefaultState(), nextRuleId: 2,
-    sites: [{ id: SITE_ID, name: "Example", profile, hosts: [{ hostname: "example.com", ruleId: 1 }] }],
+    ...createDefaultState(), nextRuleId: hosts.length + 1,
+    sites: [{ id: SITE_ID, name: "Example", profile, hosts }],
   };
 }
 
@@ -48,8 +48,36 @@ test("transaction derived apply reconciles the committed Mobile rule", async () 
   assert.equal(api.rules[0].action.requestHeaders[0].value, VERIFIED_PROFILE_SET.mobileUserAgent);
 });
 
+test("multi-host Desktop to Mobile replaces every stable rule before adding Mobile rules", async () => {
+  const hosts = [
+    { hostname: "www.youtube.com", ruleId: 1 },
+    { hostname: "m.youtube.com", ruleId: 2 },
+  ];
+  const oldRules = hosts.map((host) => createUserAgentRule({
+    id: host.ruleId,
+    hostname: host.hostname,
+    userAgent: VERIFIED_PROFILE_SET.desktopUserAgent,
+  }));
+  const api = new FakeDnrApi(oldRules);
+  const reconciler = createDnrReconciler({ dnr: createChromeDnrAdapter(api), permissions });
+  const storage = new MemoryStoragePort(state("desktop", hosts));
+  const executor = createMutationExecutor({ storage, derivedState: reconciler, createMutationId: () => MUTATION_ID });
+
+  await executor.execute({ expectedRevision: 0, operationKind: OPERATION_KIND.SET_PROFILE, mutate: mutation("mobile") });
+
+  assert.deepEqual(api.calls.filter((call) => call.operation === "update"), [
+    { operation: "update", removeRuleIds: [1, 2], addRules: [] },
+    { operation: "update", removeRuleIds: [], addRules: api.rules },
+  ]);
+  assert.deepEqual(api.rules.map((rule) => rule.id), [1, 2]);
+  assert.deepEqual(
+    api.rules.map((rule) => rule.action.requestHeaders[0].value),
+    [VERIFIED_PROFILE_SET.mobileUserAgent, VERIFIED_PROFILE_SET.mobileUserAgent],
+  );
+});
+
 test("derived apply failure enters transaction rollback and restores old expected rules", async () => {
-  const { api, storage, executor } = setup({ failUpdateCalls: [1] });
+  const { api, storage, executor } = setup({ failUpdateCalls: [2] });
   await assert.rejects(
     executor.execute({ expectedRevision: 0, operationKind: OPERATION_KIND.SET_PROFILE, mutate: mutation("mobile") }),
     (error) => error.code === TRANSACTION_ERROR.DERIVED_APPLY_FAILURE,
@@ -59,7 +87,7 @@ test("derived apply failure enters transaction rollback and restores old expecte
 });
 
 test("rollback failure makes the transaction request DNR fail closed", async () => {
-  const { api, storage, executor } = setup({ incorrectApplicationCalls: [1], failUpdateCalls: [2] });
+  const { api, storage, executor } = setup({ incorrectApplicationCalls: [2], failUpdateCalls: [3] });
   await assert.rejects(
     executor.execute({ expectedRevision: 0, operationKind: OPERATION_KIND.SET_PROFILE, mutate: mutation("mobile") }),
     (error) => error.code === TRANSACTION_ERROR.ROLLBACK_FAILURE,

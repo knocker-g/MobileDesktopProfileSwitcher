@@ -19,10 +19,30 @@ export function createDnrReconciler({ dnr, permissions, profileSet = VERIFIED_PR
     const actual = await dnr.getDynamicRules();
     const diff = diffDynamicRules(expected.rules, actual);
     if (diff.removeRuleIds.length > 0 || diff.addRules.length > 0) {
-      await dnr.updateDynamicRules({
-        removeRuleIds: [...diff.removeRuleIds],
-        addRules: [...diff.addRules],
-      });
+      const replacementIds = new Set(diff.addRules.map((rule) => rule.id));
+      const replacesExistingRules = diff.removeRuleIds.some((id) => replacementIds.has(id));
+
+      if (replacesExistingRules) {
+        // Compatibility path for an observed runtime where an old header action
+        // remained active: clear same-ID rules before installing replacements.
+        await dnr.updateDynamicRules({ removeRuleIds: [...diff.removeRuleIds], addRules: [] });
+        const afterRemoval = await dnr.getDynamicRules();
+        const removedIds = new Set(diff.removeRuleIds);
+        if (afterRemoval.some((rule) => removedIds.has(rule.id))) {
+          throw new DnrError(
+            DNR_ERROR.POST_CONDITION_FAILURE,
+            "Replaced dynamic rules remain after the removal phase.",
+          );
+        }
+        if (diff.addRules.length > 0) {
+          await dnr.updateDynamicRules({ removeRuleIds: [], addRules: [...diff.addRules] });
+        }
+      } else {
+        await dnr.updateDynamicRules({
+          removeRuleIds: [...diff.removeRuleIds],
+          addRules: [...diff.addRules],
+        });
+      }
     }
     const verified = await dnr.getDynamicRules();
     if (!rulesEqual(expected.rules, verified)) {

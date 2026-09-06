@@ -49,6 +49,48 @@ test("no-op reconcile reads twice and performs no update", async () => {
   assert.equal(api.calls.some((call) => call.operation === "update"), false);
 });
 
+test("same-ID header replacement uses verified remove then add phases", async () => {
+  const desktop = createUserAgentRule({ id: 1, hostname: "example.com", userAgent: VERIFIED_PROFILE_SET.desktopUserAgent });
+  const { api, reconciler } = setup([desktop]);
+  await reconciler.reconcile(state(true, "mobile"));
+  const updates = api.calls.filter((call) => call.operation === "update");
+  assert.deepEqual(updates, [
+    { operation: "update", removeRuleIds: [1], addRules: [] },
+    { operation: "update", removeRuleIds: [], addRules: api.rules },
+  ]);
+  assert.equal(api.rules[0].action.requestHeaders[0].value, VERIFIED_PROFILE_SET.mobileUserAgent);
+});
+
+test("Mobile to Desktop replaces the stable rule with the Desktop profile", async () => {
+  const mobile = createUserAgentRule({ id: 1, hostname: "example.com", userAgent: VERIFIED_PROFILE_SET.mobileUserAgent });
+  const { api, reconciler } = setup([mobile]);
+  await reconciler.reconcile(state(true, "desktop"));
+  assert.deepEqual(api.rules.map((rule) => rule.id), [1]);
+  assert.equal(api.rules[0].action.requestHeaders[0].value, VERIFIED_PROFILE_SET.desktopUserAgent);
+});
+
+test("Profile to Default removes the override without changing its stored rule ID", async () => {
+  const desktop = createUserAgentRule({ id: 1, hostname: "example.com", userAgent: VERIFIED_PROFILE_SET.desktopUserAgent });
+  const { api, reconciler } = setup([desktop]);
+  const result = await reconciler.reconcile(state(true, "default"));
+  assert.deepEqual(result.diff.removeRuleIds, [1]);
+  assert.deepEqual(api.rules, []);
+  assert.equal(state(true, "default").sites[0].hosts[0].ruleId, 1);
+});
+
+test("Default to Profile installs the stored stable rule ID", async () => {
+  const { api, reconciler } = setup();
+  await reconciler.reconcile(state(true, "mobile"));
+  assert.deepEqual(api.rules.map((rule) => rule.id), [1]);
+  assert.equal(api.rules[0].action.requestHeaders[0].value, VERIFIED_PROFILE_SET.mobileUserAgent);
+});
+
+test("replacement aborts when removed rule IDs remain active", async () => {
+  const desktop = createUserAgentRule({ id: 1, hostname: "example.com", userAgent: VERIFIED_PROFILE_SET.desktopUserAgent });
+  const { reconciler } = setup([desktop], { retainRemoved: true });
+  await assert.rejects(reconciler.reconcile(state(true, "mobile")), (error) => error.code === DNR_ERROR.POST_CONDITION_FAILURE);
+});
+
 test("reconcile removes stale extension-owned dynamic rules", async () => {
   const stale = createUserAgentRule({ id: 9, hostname: "stale.example", userAgent: "UA" });
   const { api, reconciler } = setup([stale]);
@@ -69,6 +111,15 @@ test("permission missing produces warning and no rule", async () => {
   const result = await reconciler.reconcile(state());
   assert.equal(result.expectedRules.length, 0);
   assert.deepEqual(result.warnings.map((item) => item.hostname), ["example.com"]);
+});
+
+test("permission loss removes an existing profile rule", async () => {
+  const desktop = createUserAgentRule({ id: 1, hostname: "example.com", userAgent: VERIFIED_PROFILE_SET.desktopUserAgent });
+  const api = new FakeDnrApi([desktop]);
+  const reconciler = createDnrReconciler({ dnr: createChromeDnrAdapter(api), permissions: permissionPort(false) });
+  const result = await reconciler.reconcile(state());
+  assert.deepEqual(result.diff.removeRuleIds, [1]);
+  assert.deepEqual(api.rules, []);
 });
 
 test("DNR API rejection is normalized", async () => {
