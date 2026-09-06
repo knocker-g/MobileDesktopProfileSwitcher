@@ -51,3 +51,15 @@ export {
   planSiteCreatePermissions,
   planSiteEditPermissions,
 } from "./permissions.js";
+export { DNR_ERROR, DnrError } from "./dnr-error.js";
+export {
+  DNR_RULE_PRIORITY,
+  MAX_UNSAFE_DYNAMIC_RULES,
+  createUserAgentRule,
+  diffDynamicRules,
+  exactHostUrlFilter,
+  generateExpectedRules,
+  matchesExactHostScope,
+  rulesEqual,
+} from "./dnr-rules.js";
+export { MAX_DNR_RULE_ID, allocateRuleIds } from "./rule-ids.js";

@@ -10,6 +10,8 @@ Release planning compares the complete validated Site collection before and afte
 
 The adapter accepts an injected permissions API and normalizes rejected `contains`, `request`, and `remove` calls. Core execution validates a plan again before invoking the adapter, so a forged wildcard, broad origin, unrelated host, duplicate origin, or incomplete HTTP/HTTPS set cannot reach the browser API. `inspectStoredSitePermissions()` reports `ready`, `permission_partial`, or `permission_missing_or_revoked` for later reconciliation. The Permissions API exposes current grants but not whether an absent grant was externally revoked or never granted, so the core does not invent that history. Phase 4 adds no listener, service worker, storage integration, DNR, or UI.
 
+Phase 5 consumes `inspectHosts()` read-only. It never calls `request()` during rule generation or reconciliation. A missing or partial host generates no rule and produces a warning; other fully granted hosts continue independently.
+
 ## Phase 4実装契約（日本語補足）
 
 Phase 4はpermission planをChrome非依存coreとして実装し、実APIを`createChromePermissionsAdapter(permissionsApi)`の背後へ隔離する。canonical hostname 1件に対する製品permission単位は、exactな`https://host/*`と`http://host/*`の組である。状態は`fully_granted`、`partial_https`、`partial_http`、`not_granted`に分け、後続DNR対象になれるのはfully grantedだけである。
@@ -19,6 +21,8 @@ Site作成planは全新規hostを重複なしの1 requestへまとめ、編集pl
 release planはmutation前後の検証済みSite collection全体を比較し、変更後storage正本に存在しないhostだけを解放する。このためDefaultとGlobal OFFはpermissionを保持する。removeは将来のSite transaction commit後にだけ行い、origin別`contains()`でpost-conditionを確認する。失敗は後続cleanup用に報告し、削除済みSiteを戻したりruleを有効化したりしない。
 
 adapterはpermissions APIを注入可能で、`contains`、`request`、`remove`のrejectを正規化する。coreはadapter呼出し直前にもplanを検証するため、偽造wildcard、broad origin、無関係host、重複origin、不完全なHTTP/HTTPS setはbrowser APIへ到達しない。`inspectStoredSitePermissions()`は後続reconcile向けに`ready`、`permission_partial`、`permission_missing_or_revoked`を返す。Permissions APIは現在grantだけを示し、不在grantが外部revokeか未取得かの履歴は示さないため、coreは推測で区別しない。Phase 4ではlistener、service worker、storage接続、DNR、UIは追加しない。
+
+Phase 5は`inspectHosts()`をread-onlyで利用し、rule生成/reconcile中に`request()`を呼ばない。missing/partial hostはruleなし＋warningとなり、他のfully granted hostは独立して有効化できる。
 
 ## 日本語
 

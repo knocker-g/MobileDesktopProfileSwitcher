@@ -55,6 +55,8 @@ startup decisionは、journalなしならcurrent configurationをreconcileし、
 
 storage portは`readState()`/`writeState()`、derived-state portは`apply()`/`rollback()`/`failClosed()`の最小境界である。Phase 3ではin-memory fakeのみを実装し、Chrome API、DNR生成、permission、health永続化は実装しない。mutation IDは注入するが、Site ID生成とrule ID allocationは後続Phaseに残す。
 
+Phase 5でderived-state portへDNR reconcilerを接続した。`apply(nextState)`はnext expected rules、`rollback(previousState)`はprevious expected rulesを現在permissionから再構築する。どちらもpost-conditionまで検証し、失敗はPhase 3 transactionのrollback/fail-closed pathへ伝播する。storage正本をactual DNRから変更しない。
+
 ## English
 
 ### Keys and authority
@@ -100,3 +102,5 @@ If derived apply or next-configuration persistence fails, the coordinator attemp
 At startup, no journal means reconcile current configuration; a current revision equal to the journal base means rollback; and a revision equal to the journal next revision with matching `nextState` means finalize the commit. Every other relation, a corrupt current schema, and an older/unknown/newer schema fail closed while preserving raw state. Phase 3 classifies schemas but implements no migration.
 
 The storage port is the minimal `readState()`/`writeState()` boundary, and the derived-state port is `apply()`/`rollback()`/`failClosed()`. Phase 3 supplies in-memory fakes only; it does not implement Chrome APIs, DNR generation, permissions, or persisted health. Mutation ID creation is injected; Site ID generation and rule-ID allocation remain for later phases.
+
+Phase 5 connects a DNR reconciler to the derived-state port. `apply(nextState)` rebuilds the next expected rules and `rollback(previousState)` rebuilds the previous expected rules from current permission. Both verify their post-condition and propagate failure into the Phase 3 rollback/fail-closed path. Actual DNR state never changes storage authority.

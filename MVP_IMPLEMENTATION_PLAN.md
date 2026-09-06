@@ -50,6 +50,7 @@ investigation/
 - Phase 2 gate: DNS/IDN host正規化、Site/profile/ID/rule ID validation、collection duplicate検出、immutable add/update/removeをpure coreとして実装済み。ID生成、schema migration、transactionは後続Phaseに残す。
 - Phase 3 gate: schema/revision/journal、直列mutation、stale拒否、rollback、startup recovery、fail-closed decisionをChrome非依存coreとfake portで実装済み。Chrome storage adapter、permission、DNRは後続Phaseに残す。
 - Phase 4 gate: exact HTTP/HTTPS permission plan、full/partial/none inspection、user-gesture-first request、post-condition、release、external revoke inspection、注入可能Chrome adapterを実装済み。storage transaction接続、service worker、DNR、UIは後続Phaseに残す。
+- Phase 5 gate: stable rule ID allocation、main-frame UA-only expected rule、extension-owned diff、atomic reconcile/read-back、fail closed、DNR adapterとPhase 3 transaction統合を実装済み。service workerとUIは後続Phaseに残す。
 - Phase 5 gate: dynamic-rule上限、rule ID上限、regex supportを実環境値と照合する。
 - Phase 8 gate: PC Chromeでactual storage/permission/DNR lifecycleが一括PASSする。
 - Phase 9 gate: PC manual smokeと一度限りのmain-frame wire確認。
@@ -95,6 +96,7 @@ Once Phase 1 starts, the canonical command is `npm run verify`. With no external
 - Phase 2: DNS/IDN normalization, Site/profile/ID/rule-ID validation, collection duplicate detection, and immutable add/update/remove are implemented in the pure core. ID generation, schema migration, and transactions remain for later phases.
 - Phase 3: schema/revision/journal handling, serialized mutations, stale rejection, rollback, startup recovery, and fail-closed decisions are implemented with Chrome-independent core and fake ports. Chrome storage, permission, and DNR adapters remain for later phases.
 - Phase 4: exact HTTP/HTTPS permission planning, full/partial/absent inspection, user-gesture-first request, post-condition checks, release, external-revoke inspection, and an injectable Chrome adapter are implemented. Storage-transaction orchestration, service worker, DNR, and UI remain for later phases.
+- Phase 5: stable rule-ID allocation, main-frame UA-only expected rules, extension-owned diffing, atomic reconciliation/read-back, fail closed, a DNR adapter, and Phase 3 transaction integration are implemented. Service-worker and UI orchestration remain for later phases.
 - Phase 5: verify dynamic-rule and rule-ID limits plus regex support against target environments.
 - Phase 8: pass actual storage/permission/DNR lifecycle in PC Chrome in one run.
 - Phase 9: pass one PC manual smoke and one-time main-frame wire verification.

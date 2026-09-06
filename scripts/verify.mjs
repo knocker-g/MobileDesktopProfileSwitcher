@@ -88,6 +88,19 @@ for (const pattern of forbiddenRuntimePatterns) {
 }
 console.log("PASS no remote configuration, telemetry, or experiment fixture");
 
+const forbiddenDnrProductPatterns = [
+  /Sec-CH-UA/i,
+  /\bregexFilter\b/,
+  /\bresponseHeaders\b/,
+  /\bredirect\b/,
+];
+for (const pattern of forbiddenDnrProductPatterns) {
+  if (pattern.test(productSource)) {
+    throw new Error(`Forbidden product DNR capability: ${String(pattern)}`);
+  }
+}
+console.log("PASS DNR product safety boundary");
+
 run(process.execPath, ["--test"], "Node tests");
 run("git", ["diff", "--check"], "git diff --check");
 run("git", ["diff", "--cached", "--check"], "git diff --cached --check");

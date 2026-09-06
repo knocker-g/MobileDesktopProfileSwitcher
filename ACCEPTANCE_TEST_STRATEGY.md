@@ -27,6 +27,8 @@ Phase 3ではdefault/clone safety、schema分類、Phase 2 Site validation再利
 
 Phase 4ではexact origin生成、canonical host強制、4状態inspection、multi-host create、added-host-only edit、collection全体からのrelease、Default/Global OFF保持、request denial/rejection/post-condition/cleanup failure、remove failure/post-condition、external revokeをNode unit/contract testへ統合する。PC PoCの既存Observed PASSを根拠とし、新しいmanual testは要求しない。
 
+Phase 5ではrule ID allocation/overflow、Desktop/Mobile/Default/OFF/missing permission、exact-host main-frame UA-only invariant、diff、stale cleanup、atomic update後read-back、API/post-condition failure、fail closed、Phase 3 apply/rollback/fail-closed接続をfake DNRで自動検証する。Chrome実matcherとwire UAは後続の集約PC Acceptanceまで手動確認しない。
+
 ### Level 2 — PC Chrome Integration Runner
 
 production manifestへtest権限を追加せず、unpacked development packageにだけ含めるtest page/runnerを用いる。`Run PC Acceptance Test`の1回のuser gestureから、入力済みのexact fixture hostについてpermission requestを直ちに開始する。ユーザー操作はbrowser promptの許可1回だけで、そのcallback後は次を直列実行する。
@@ -101,6 +103,8 @@ At Phase 2, Node unit tests already cover hostile host cases, IDN/punycode, Site
 At Phase 3, in-memory fakes automatically cover defaults and clone safety, schema classification, reuse of Phase 2 Site validation, journal consistency, normal commits, stale revisions, each write failure, derived apply/rollback failures, startup decisions for residual journals, fail closed, serialized concurrent mutations, and lost-update prevention. No Chrome API or human check is involved.
 
 At Phase 4, Node unit/contract tests cover exact-origin generation, canonical-host enforcement, all four inspection states, multi-host create, added-host-only edit, whole-collection release, retention for Default/Global OFF, request denial/rejection/post-condition/cleanup failure, remove failure/post-condition, and external revocation. The prior PC PoC PASS remains the real-browser evidence; no new manual test is requested.
+
+At Phase 5, fake-DNR tests cover rule-ID allocation/overflow, Desktop/Mobile/Default/OFF/missing permission, exact-host main-frame UA-only invariants, diffing, stale cleanup, atomic-update read-back, API/post-condition failure, fail closed, and Phase 3 apply/rollback/fail-closed integration. Real Chrome matching and wire UA remain deferred to the consolidated PC Acceptance run.
 
 ### Level 2 — PC Chrome Integration Runner
 
