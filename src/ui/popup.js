@@ -1,6 +1,8 @@
 import { createActiveTabAdapter } from "../adapters/active-tab.js";
 import { createChromePermissionsAdapter } from "../adapters/chrome-permissions.js";
+import { createChromeActionBadgeAdapter } from "../adapters/chrome-action-badge.js";
 import { PROFILE } from "../core/profiles.js";
+import { badgeTextForTab } from "./badge-model.js";
 import { MESSAGE_TYPE } from "../runtime/runtime.js";
 import {
   VIEW,
@@ -14,6 +16,7 @@ import { requestExactHostAccess } from "./popup-actions.js";
 
 const activeTab = createActiveTabAdapter(chrome.tabs);
 const permissions = createChromePermissionsAdapter(chrome.permissions);
+const actionBadge = createChromeActionBadgeAdapter(chrome.action);
 const popupElementIds = Object.freeze({
   app: "app",
   globalToggle: "global-toggle",
@@ -30,7 +33,7 @@ const popupElementIds = Object.freeze({
   siteName: "site-name",
   hostList: "host-list",
   addHost: "add-host",
-  formProfiles: "form-profiles",
+  formProfile: "form-profile",
   removeArea: "remove-area",
   startRemove: "start-remove",
   removeConfirm: "remove-confirm",
@@ -80,24 +83,29 @@ function showError(message = "") {
 function setBusy(value, label = "Working…") {
   busy = value;
   elements.app.setAttribute("aria-busy", String(value));
-  for (const button of elements.app.querySelectorAll("button")) button.disabled = value;
+  for (const control of elements.app.querySelectorAll("button, input, select")) control.disabled = value;
   elements.status.textContent = value ? label : "";
 }
 
-function profileButtons(container, selected, disabled, onSelect) {
-  container.replaceChildren();
-  container.setAttribute("role", "group");
-  container.setAttribute("aria-label", "Profile");
+function profileSelect(selected, disabled, onSelect, id) {
+  const field = document.createElement("div");
+  field.className = "profile-field";
+  const label = document.createElement("label");
+  label.htmlFor = id;
+  label.textContent = "Profile";
+  const select = document.createElement("select");
+  select.id = id;
   for (const profile of [PROFILE.DEFAULT, PROFILE.DESKTOP, PROFILE.MOBILE]) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = profile[0].toUpperCase() + profile.slice(1);
-    button.dataset.profile = profile;
-    button.setAttribute("aria-pressed", String(profile === selected));
-    button.disabled = disabled;
-    button.addEventListener("click", () => onSelect(profile));
-    container.append(button);
+    const option = document.createElement("option");
+    option.value = profile;
+    option.textContent = labelProfile(profile);
+    select.append(option);
   }
+  select.value = selected;
+  select.disabled = disabled;
+  select.addEventListener("change", () => onSelect(select.value));
+  field.append(label, select);
+  return field;
 }
 
 function paragraph(text, className = "") {
@@ -108,13 +116,16 @@ function paragraph(text, className = "") {
 }
 
 async function refresh() {
-  const [nextState, activeUrl] = await Promise.all([
+  const [nextState, currentTab] = await Promise.all([
     command(MESSAGE_TYPE.GET_STATE),
-    activeTab.getCurrentUrl(),
+    activeTab.getCurrentTab(),
   ]);
   const inspections = await command(MESSAGE_TYPE.INSPECT_PERMISSIONS);
   state = nextState;
-  model = createPopupModel(state, activeUrl, inspections);
+  model = createPopupModel(state, currentTab.url, inspections);
+  if (currentTab.id !== null) {
+    await actionBadge.set(currentTab.id, badgeTextForTab(state, currentTab.url, inspections)).catch(() => undefined);
+  }
   render();
 }
 
@@ -125,17 +136,44 @@ function openForm(nextForm) {
   render();
 }
 
-async function quickProfile(profile) {
-  if (busy || !model.currentSite || !state.enabled) return;
+async function quickProfile(siteId, profile) {
+  if (busy || !state.enabled) return;
   setBusy(true, "Applying profile…");
   showError();
   try {
-    await command(MESSAGE_TYPE.SET_PROFILE, { expectedRevision: state.revision, siteId: model.currentSite.id, profile });
+    await command(MESSAGE_TYPE.SET_PROFILE, { expectedRevision: state.revision, siteId, profile });
     await refresh();
   } catch (error) {
     await refreshIfStale(error);
     showError("Could not save changes.");
   } finally { setBusy(false); render(); }
+}
+
+function hostSummary(site, matchingHostname = null) {
+  const list = document.createElement("ul");
+  list.className = "host-summary";
+  for (const host of site.hosts) {
+    const item = document.createElement("li");
+    item.textContent = host.hostname;
+    if (host.hostname === matchingHostname) {
+      item.className = "matching-host";
+      item.setAttribute("aria-current", "true");
+    }
+    list.append(item);
+  }
+  return list;
+}
+
+function permissionWarning(site) {
+  const warning = document.createElement("div");
+  warning.className = "permission-warning";
+  warning.append(paragraph("Site access required."));
+  const grant = document.createElement("button");
+  grant.type = "button";
+  grant.textContent = "Grant access";
+  grant.addEventListener("click", () => grantSite(site));
+  warning.append(grant);
+  return warning;
 }
 
 function renderCurrent() {
@@ -159,21 +197,18 @@ function renderCurrent() {
   } else {
     elements.currentContent.append(
       paragraph(model.currentSite.name, "site-name"),
-      paragraph(model.hostname, "hostname"),
+      paragraph(`Matching host: ${model.hostname}`, "hostname matching-label"),
+      hostSummary(model.currentSite, model.hostname),
     );
-    elements.currentContent.append(paragraph("Profile", "control-label"));
-    const profiles = document.createElement("div");
-    profiles.className = "profile-control";
-    profileButtons(profiles, model.currentSite.profile, !state.enabled || busy, quickProfile);
-    elements.currentContent.append(profiles);
+    elements.currentContent.append(profileSelect(
+      model.currentSite.profile,
+      !state.enabled || busy,
+      (profile) => quickProfile(model.currentSite.id, profile),
+      "current-profile",
+    ));
     if (!state.enabled) elements.currentContent.append(paragraph(`${labelProfile(model.currentSite.profile)} selected — Global OFF`));
     if (!model.currentPermissionReady) {
-      elements.currentContent.append(paragraph("Site access required.", "error"));
-      const grant = document.createElement("button");
-      grant.type = "button";
-      grant.textContent = "Grant access";
-      grant.addEventListener("click", grantCurrentSite);
-      elements.currentContent.append(grant);
+      elements.currentContent.append(permissionWarning(model.currentSite));
     }
     const edit = document.createElement("button");
     edit.type = "button";
@@ -185,19 +220,27 @@ function renderCurrent() {
 
   elements.siteList.replaceChildren();
   elements.otherSites.hidden = model.otherSites.length === 0;
-  elements.otherSitesSummary.textContent = `Other sites (${model.otherSites.length})`;
+  elements.otherSitesSummary.textContent = `Registered sites (${model.otherSites.length})`;
   for (const site of model.otherSites) {
     const item = document.createElement("li");
-    const button = document.createElement("button");
-    button.type = "button";
+    item.className = "site-card";
     const name = document.createElement("span");
+    name.className = "site-card-name";
     name.textContent = site.name;
-    const selectedProfile = document.createElement("span");
-    selectedProfile.className = "site-list-profile";
-    selectedProfile.textContent = labelProfile(site.profile);
-    button.append(name, selectedProfile);
-    button.addEventListener("click", () => openForm(createSiteForm({ site })));
-    item.append(button);
+    item.append(name, hostSummary(site));
+    item.append(profileSelect(
+      site.profile,
+      !state.enabled || busy,
+      (profile) => quickProfile(site.id, profile),
+      `site-profile-${site.id}`,
+    ));
+    if (!model.permissionReadyBySiteId[site.id]) item.append(permissionWarning(site));
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "secondary";
+    edit.textContent = "Edit site";
+    edit.addEventListener("click", () => openForm(createSiteForm({ site })));
+    item.append(edit);
     elements.siteList.append(item);
   }
 }
@@ -210,6 +253,7 @@ function syncFormFromDom() {
   form = Object.freeze({
     ...form,
     name: elements.siteName.value,
+    profile: elements.formProfile.value,
     hosts: Object.freeze([...elements.hostList.querySelectorAll("input")].map((input) => input.value)),
   });
   return form;
@@ -245,11 +289,8 @@ function renderForm() {
     row.append(label, input, remove);
     elements.hostList.append(row);
   });
-  profileButtons(elements.formProfiles, form.profile, busy, (profile) => {
-    syncFormFromDom();
-    form = Object.freeze({ ...form, profile });
-    renderForm();
-  });
+  elements.formProfile.value = form.profile;
+  elements.formProfile.disabled = busy;
   elements.removeArea.hidden = view !== VIEW.EDIT;
   elements.removeConfirm.hidden = true;
   elements.startRemove.hidden = false;
@@ -303,11 +344,11 @@ async function saveForm(event) {
   } finally { setBusy(false); render(); }
 }
 
-async function grantCurrentSite() {
-  if (busy || !model.currentSite) return;
+async function grantSite(site) {
+  if (busy || !site) return;
   setBusy(true, "Requesting site access…");
   showError();
-  const hosts = model.currentSite.hosts.map((host) => host.hostname);
+  const hosts = site.hosts.map((host) => host.hostname);
   const permissionPromise = requestExactHostAccess(hosts, permissions);
   try {
     if (!(await permissionPromise)) return showError("Site access was not granted.");

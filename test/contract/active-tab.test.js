@@ -13,3 +13,8 @@ test("activeTab adapter safely handles absent URL", async () => {
   assert.equal(await createActiveTabAdapter({ query: async () => [{}] }).getCurrentUrl(), null);
   assert.equal(await createActiveTabAdapter({ query: async () => [] }).getCurrentUrl(), null);
 });
+
+test("activeTab adapter returns only current tab id and URL for popup status", async () => {
+  const adapter = createActiveTabAdapter({ query: async () => [{ id: 42, url: "https://example.com/path", title: "Private title" }] });
+  assert.deepEqual(await adapter.getCurrentTab(), { id: 42, url: "https://example.com/path" });
+});

@@ -22,7 +22,7 @@ const expectedElementBindings = Object.freeze({
   siteName: "site-name",
   hostList: "host-list",
   addHost: "add-host",
-  formProfiles: "form-profiles",
+  formProfile: "form-profile",
   removeArea: "remove-area",
   startRemove: "start-remove",
   removeConfirm: "remove-confirm",
@@ -48,6 +48,7 @@ test("popup is English-only semantic UI with labelled controls", () => {
   assert.match(html, /role="status"/);
   assert.match(html, /role="alert"/);
   assert.match(html, /<label for="site-name">/);
+  assert.match(html, /<label for="form-profile">Profile<\/label>/);
 });
 
 test("popup has no remote, inline script, custom identity, wildcard, or language UI", () => {
@@ -64,22 +65,33 @@ test("responsive CSS avoids viewport-sized feedback loops and horizontal overflo
   assert.match(css, /min-height:\s*44px/);
 });
 
-test("current, add, and edit controls use a narrow-safe one-column layout", () => {
+test("popup has one stable responsive width across every view", () => {
   assert.doesNotMatch(css, /grid-template-columns:\s*repeat\(3|text-overflow:\s*ellipsis|overflow-x:\s*(?:auto|scroll)/);
-  assert.match(css, /\.profile-control\s*\{[^}]*flex-direction:\s*column/s);
-  assert.match(css, /\.host-row\s*\{[^}]*flex-direction:\s*column/s);
-  assert.match(css, /\.actions\s*\{[^}]*flex-direction:\s*column/s);
-  assert.match(css, /button, input\s*\{[^}]*width:\s*100%[^}]*min-width:\s*0/s);
-  assert.match(css, /\.hostname\s*\{[^}]*overflow-wrap:\s*anywhere/s);
-  assert.doesNotMatch(css, /body\s*\{[^}]*min-width:\s*(?:[2-9]\d\d|\d{4,})px/s);
+  assert.match(css, /html, body\s*\{[^}]*width:\s*400px[^}]*max-width:\s*100%/s);
+  assert.doesNotMatch(css, /#(?:current|form)-view[^}]*width|\.view[^}]*width/);
+  assert.match(css, /button, input, select\s*\{[^}]*width:\s*100%[^}]*min-width:\s*0/s);
+  assert.match(css, /\.host-summary li\s*\{[^}]*overflow-wrap:\s*anywhere/s);
 });
 
-test("profile and host editors expose full-width accessible controls", () => {
-  assert.match(js, /paragraph\("Profile", "control-label"\)/);
-  assert.match(js, /profileButtons\(profiles, model\.currentSite\.profile/);
-  assert.match(js, /profileButtons\(elements\.formProfiles, form\.profile/);
+test("profile uses accessible selects and deprecated profile buttons are absent", () => {
+  for (const profile of ["default", "desktop", "mobile"]) {
+    assert.match(html, new RegExp(`<option value="${profile}">`, "i"));
+  }
+  assert.match(js, /function profileSelect\(/);
+  assert.match(js, /select\.addEventListener\("change"/);
+  assert.doesNotMatch(js, /function profileButtons\(|aria-pressed.*profile/);
+  assert.match(js, /elements\.formProfile\.value/);
+});
+
+test("host summaries, permission warning, and edit footer controls are present", () => {
+  assert.match(js, /function hostSummary\(/);
+  assert.match(js, /for \(const host of site\.hosts\)/);
+  assert.match(js, /function permissionWarning\(/);
   assert.match(js, /addHostRow\(form\)/);
   assert.match(js, /remove\.setAttribute\("aria-label", `Remove host \$\{index \+ 1\}`\)/);
+  assert.match(html, /class="form-footer sticky-actions"/);
+  for (const id of ["start-remove", "cancel-form", "save-site"]) assert.match(html, new RegExp(`id="${id}"`));
+  assert.match(css, /\.form-footer\s*\{[^}]*display:\s*flex/s);
 });
 
 test("popup controller sends only allowlisted typed runtime commands", () => {

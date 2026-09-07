@@ -9,25 +9,25 @@
 <body>
   <main id="app" aria-busy="true">
     <header class="app-header">
-      <strong>MDPS</strong>
+      <strong class="brand">MDPS</strong>
       <button id="global-toggle" type="button" class="toggle" disabled>Loading…</button>
     </header>
 
     <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
     <p id="error" class="error" role="alert" hidden></p>
 
-    <section id="current-view" hidden>
+    <section id="current-view" class="view" hidden>
       <h1>Current site</h1>
-      <div id="current-content"></div>
-      <details id="other-sites">
-        <summary id="other-sites-summary"></summary>
+      <div id="current-content" class="panel"></div>
+      <section id="other-sites" class="registered-sites">
+        <h2 id="other-sites-summary"></h2>
         <ul id="site-list" class="site-list"></ul>
-      </details>
+      </section>
     </section>
 
-    <section id="form-view" hidden>
+    <section id="form-view" class="view" hidden>
       <h1 id="form-title">Add site</h1>
-      <form id="site-form" novalidate>
+      <form id="site-form" class="panel" novalidate>
         <label for="site-name">Name</label>
         <input id="site-name" name="name" autocomplete="off" maxlength="80">
 
@@ -37,25 +37,28 @@
           <button id="add-host" type="button" class="secondary">+ Add host</button>
         </fieldset>
 
-        <fieldset>
-          <legend>Profile</legend>
-          <div id="form-profiles" class="profile-control"></div>
-        </fieldset>
+        <label for="form-profile">Profile</label>
+        <select id="form-profile" name="profile">
+          <option value="default">Default</option>
+          <option value="desktop">Desktop</option>
+          <option value="mobile">Mobile</option>
+        </select>
 
-        <div id="remove-area" class="remove-area" hidden>
-          <button id="start-remove" type="button" class="danger-link">Remove site</button>
-          <div id="remove-confirm" hidden>
-            <p>Remove this site?</p>
-            <div class="actions">
-              <button id="cancel-remove" type="button" class="secondary">Cancel</button>
-              <button id="confirm-remove" type="button" class="danger">Remove</button>
+        <div class="form-footer sticky-actions">
+          <div id="remove-area" class="remove-area" hidden>
+            <button id="start-remove" type="button" class="danger-link">Remove site</button>
+            <div id="remove-confirm" class="remove-confirm" hidden>
+              <p>Remove this site?</p>
+              <div class="confirm-actions">
+                <button id="cancel-remove" type="button" class="secondary">Cancel</button>
+                <button id="confirm-remove" type="button" class="danger">Remove</button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="actions sticky-actions">
-          <button id="cancel-form" type="button" class="secondary">Cancel</button>
-          <button id="save-site" type="submit">Save</button>
+          <div class="form-actions">
+            <button id="cancel-form" type="button" class="secondary">Cancel</button>
+            <button id="save-site" type="submit">Save</button>
+          </div>
         </div>
       </form>
     </section>

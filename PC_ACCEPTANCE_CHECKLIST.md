@@ -129,7 +129,7 @@ Mobile Web hiding native Live Chat is expected and is not a failure.
 
 1. Open MDPS, select **Desktop**, close the popup, and reload YouTube; confirm Desktop Web.
 2. Open MDPS and click Global **ON** so it becomes **OFF**.
-3. Confirm **Desktop selected — Global OFF** remains visible and profile buttons are disabled.
+3. Confirm **Desktop selected — Global OFF** remains visible and Profile selects are disabled.
 4. Close the popup and reload YouTube; confirm the MDPS override is stopped.
 5. Open MDPS and click Global **OFF** so it becomes **ON**.
 6. Confirm no new permission prompt appears.
@@ -201,7 +201,7 @@ Desktop Chrome Stableでunpacked製品Extensionを1回だけ通しで確認す�
 5. F12→Network→Doc→reload→main document→Request HeadersでDesktop Chrome 152 UAが上記英語手順の値と一致することだけを確認する。
 6. MDPSでMobileを選択しreloadする。Mobile Web、PC viewport維持、login、動画再生、warningなしを確認する。main document UAを上記Mobile Chrome 152値と1回だけ照合する。YouTubeによる`m.youtube.com`移行は正常である。
 7. MDPSでDefaultを選びreloadする。Chrome本来の表示とnative UAへ戻り、2つのMDPS fixtureではないことだけを確認する。ここでDevToolsを閉じる。
-8. Desktopへ切替えてDesktop Webを確認後、Global OFFにする。Desktop選択表示が残りbuttonがdisabled、reloadでoverride停止を確認する。Global ONへ戻し、promptなしでreload後Desktop Webへ戻ることを確認する。
+8. Desktopへ切替えてDesktop Webを確認後、Global OFFにする。Desktop選択表示が残りProfile selectがdisabled、reloadでoverride停止を確認する。Global ONへ戻し、promptなしでreload後Desktop Webへ戻ることを確認する。
 9. popupを閉じて再度開き、YouTube Site、Desktop、Global ONが保持されることを確認する。
 10. `chrome://extensions`のMDPS cardでReloadし、YouTubeへ戻る。Site/Profile/Global状態が保持され、reloadでDesktop Web、追加promptなしを確認する。
 11. `chrome://extensions`→MDPS **Details**→Permissions/Site access→許可済みYouTube entryのmenu→`www.youtube.com`をRemoveする（Chromeがまとめる場合は両方）。YouTubeでpopupを開き、Site/Desktopは残り、`Site access required.`と`Grant access`が出ること、reloadでoverride停止を確認する。Grant accessを押してexact-host promptを許可し、warning消失とDesktop復帰を確認する。表示名が異なる場合はExtensions menu→MDPS menu→**This can read and change site data**からcurrent-site grantを外してよい。all-sites grantは選ばない。

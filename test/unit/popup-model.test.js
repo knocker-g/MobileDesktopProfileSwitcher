@@ -44,7 +44,25 @@ test("current model preserves selected profile while Global OFF", () => {
 });
 
 test("permission warning model requires full grant", () => {
-  assert.equal(createPopupModel(state(), "https://www.youtube.com", [{ hostname: "www.youtube.com", fullyGranted: false }]).currentPermissionReady, false);
+  const model = createPopupModel(state(), "https://www.youtube.com", [{ hostname: "www.youtube.com", fullyGranted: false }]);
+  assert.equal(model.currentPermissionReady, false);
+  assert.equal(model.permissionReadyBySiteId[SITE_A.id], false);
+});
+
+test("registered Site model retains every host for Current and Site List rendering", () => {
+  const multi = Object.freeze({
+    ...SITE_A,
+    hosts: Object.freeze([
+      { hostname: "www.youtube.com", ruleId: 1 },
+      { hostname: "m.youtube.com", ruleId: 3 },
+    ]),
+  });
+  const next = state({ sites: [multi, SITE_B], nextRuleId: 4 });
+  const inspections = multi.hosts.map(({ hostname }) => ({ hostname, fullyGranted: true }));
+  const current = createPopupModel(next, "https://www.youtube.com", inspections);
+  assert.deepEqual(current.currentSite.hosts.map((host) => host.hostname), ["www.youtube.com", "m.youtube.com"]);
+  const listed = createPopupModel(next, "https://example.com", inspections);
+  assert.deepEqual(listed.otherSites[0].hosts.map((host) => host.hostname), ["www.youtube.com", "m.youtube.com"]);
 });
 
 test("other Sites exclude current and sort deterministically", () => {

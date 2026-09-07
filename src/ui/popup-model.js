@@ -22,12 +22,17 @@ export function createPopupModel(state, activeUrl, permissionInspections = []) {
   const currentReady = currentSite === null || currentSite.hosts.every(
     (host) => permissionByHost.get(host.hostname)?.fullyGranted === true,
   );
+  const permissionReadyBySiteId = Object.freeze(Object.fromEntries(sites.map((site) => [
+    site.id,
+    site.hosts.every((host) => permissionByHost.get(host.hostname)?.fullyGranted === true),
+  ])));
   return Object.freeze({
     enabled: state.enabled,
     revision: state.revision,
     hostname,
     currentSite,
     currentPermissionReady: currentReady,
+    permissionReadyBySiteId,
     otherSites: Object.freeze(sites
       .filter((site) => site.id !== currentSite?.id)
       .sort((left, right) => left.name.localeCompare(right.name) || left.id.localeCompare(right.id))),
