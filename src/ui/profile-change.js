@@ -1,17 +1,19 @@
-export async function applyCurrentSiteProfile({
-  siteId,
-  profile,
-  expectedRevision,
+export async function completePopupStateChange({
+  performChange,
   tabId,
-  commitProfile,
+  shouldReload,
   refreshState,
   reloadTab,
 }) {
-  await commitProfile({ expectedRevision, siteId, profile });
+  await performChange();
   try {
     await refreshState();
   } catch {
     return Object.freeze({ committed: true, reloaded: false, warning: "refresh_failed" });
+  }
+
+  if (!shouldReload) {
+    return Object.freeze({ committed: true, reloaded: false, warning: null });
   }
 
   if (!Number.isInteger(tabId) || tabId < 0) {
@@ -24,4 +26,22 @@ export async function applyCurrentSiteProfile({
   } catch {
     return Object.freeze({ committed: true, reloaded: false, warning: "reload_failed" });
   }
+}
+
+export async function applyCurrentSiteProfile({
+  siteId,
+  profile,
+  expectedRevision,
+  tabId,
+  commitProfile,
+  refreshState,
+  reloadTab,
+}) {
+  return completePopupStateChange({
+    performChange: () => commitProfile({ expectedRevision, siteId, profile }),
+    tabId,
+    shouldReload: true,
+    refreshState,
+    reloadTab,
+  });
 }

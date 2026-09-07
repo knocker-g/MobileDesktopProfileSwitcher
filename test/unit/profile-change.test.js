@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyCurrentSiteProfile } from "../../src/ui/profile-change.js";
+import { applyCurrentSiteProfile, completePopupStateChange } from "../../src/ui/profile-change.js";
 
 function harness({ commitError = null, reloadError = null } = {}) {
   const calls = [];
@@ -73,4 +73,44 @@ test("missing current tab skips reload after a successful mutation", async () =>
   const result = await applyCurrentSiteProfile(options);
   assert.deepEqual(fixture.calls.map(([kind]) => kind), ["commit", "refresh"]);
   assert.equal(result.warning, "reload_unavailable");
+});
+
+test("shared popup state change reloads only a matching registered current Site", async () => {
+  for (const shouldReload of [true, false]) {
+    const calls = [];
+    const result = await completePopupStateChange({
+      performChange: async () => calls.push("change"),
+      refreshState: async () => calls.push("refresh"),
+      reloadTab: async (tabId) => calls.push(`reload:${String(tabId)}`),
+      tabId: 42,
+      shouldReload,
+    });
+    assert.deepEqual(calls, shouldReload ? ["change", "refresh", "reload:42"] : ["change", "refresh"]);
+    assert.equal(result.reloaded, shouldReload);
+  }
+});
+
+test("shared reload failure preserves a successful Global, Grant, or Delete change", async () => {
+  let changes = 0;
+  const result = await completePopupStateChange({
+    performChange: async () => { changes += 1; },
+    refreshState: async () => undefined,
+    reloadTab: async () => { throw new Error("tab closed"); },
+    tabId: 42,
+    shouldReload: true,
+  });
+  assert.equal(changes, 1);
+  assert.deepEqual(result, { committed: true, reloaded: false, warning: "reload_failed" });
+});
+
+test("failed Global, Grant, or Delete operation never refreshes or reloads", async () => {
+  const calls = [];
+  await assert.rejects(() => completePopupStateChange({
+    performChange: async () => { calls.push("change"); throw new Error("reconcile failed"); },
+    refreshState: async () => calls.push("refresh"),
+    reloadTab: async () => calls.push("reload"),
+    tabId: 42,
+    shouldReload: true,
+  }), /reconcile failed/);
+  assert.deepEqual(calls, ["change"]);
 });

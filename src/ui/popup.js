@@ -13,7 +13,7 @@ import {
   validateSiteForm,
 } from "./popup-model.js";
 import { requestExactHostAccess } from "./popup-actions.js";
-import { applyCurrentSiteProfile } from "./profile-change.js";
+import { applyCurrentSiteProfile, completePopupStateChange } from "./profile-change.js";
 
 const activeTab = createActiveTabAdapter(chrome.tabs);
 const permissions = createChromePermissionsAdapter(chrome.permissions);
@@ -77,6 +77,11 @@ async function refreshIfStale(error) {
 function showError(message = "") {
   elements.error.textContent = message;
   elements.error.hidden = !message;
+}
+
+function showPostChangeWarning(result) {
+  if (result.warning === "refresh_failed") showError("The change succeeded, but the popup could not be refreshed.");
+  else if (result.warning) showError("The change succeeded, but the page could not be reloaded.");
 }
 
 function setBusy(value, label = "Working…") {
@@ -151,8 +156,7 @@ async function quickProfile(siteId, profile) {
       refreshState: refresh,
       reloadTab: (tabId) => activeTab.reload(tabId),
     });
-    if (result.warning === "refresh_failed") showError("Profile changed, but the popup could not be refreshed.");
-    else if (result.warning) showError("Profile changed, but the page could not be reloaded.");
+    showPostChangeWarning(result);
   } catch (error) {
     await refreshIfStale(error);
     showError("Could not save changes.");
@@ -243,11 +247,21 @@ async function removeSite(siteId) {
   if (busy) return;
   setBusy(true, "Removing site…");
   showError();
+  const targetTabId = currentTab.id;
+  const reloadCurrentSite = model.currentSite?.id === siteId;
   try {
-    await command(MESSAGE_TYPE.DELETE_SITE, { expectedRevision: state.revision, siteId });
-    pendingDeleteSiteId = null;
-    view = VIEW.CURRENT;
-    await refresh();
+    const result = await completePopupStateChange({
+      performChange: async () => {
+        await command(MESSAGE_TYPE.DELETE_SITE, { expectedRevision: state.revision, siteId });
+        pendingDeleteSiteId = null;
+        view = VIEW.CURRENT;
+      },
+      tabId: targetTabId,
+      shouldReload: reloadCurrentSite,
+      refreshState: refresh,
+      reloadTab: (tabId) => activeTab.reload(tabId),
+    });
+    showPostChangeWarning(result);
   } catch (error) {
     await refreshIfStale(error);
     showError("Could not remove site.");
@@ -293,9 +307,6 @@ function renderCurrent() {
       "current-profile",
     ));
     if (!state.enabled) elements.currentContent.append(paragraph(`${labelProfile(model.currentSite.profile)} selected — Global OFF`));
-    if (!model.currentPermissionReady) {
-      elements.currentContent.append(permissionWarning(model.currentSite));
-    }
   }
 
   elements.siteList.replaceChildren();
@@ -419,12 +430,20 @@ async function grantSite(site) {
   if (busy || !site) return;
   setBusy(true, "Requesting site access…");
   showError();
+  const targetTabId = currentTab.id;
+  const reloadCurrentSite = model.currentSite?.id === site.id;
   const hosts = site.hosts.map((host) => host.hostname);
   const permissionPromise = requestExactHostAccess(hosts, permissions);
   try {
     if (!(await permissionPromise)) return showError("Site access was not granted.");
-    await command(MESSAGE_TYPE.RECONCILE);
-    await refresh();
+    const result = await completePopupStateChange({
+      performChange: () => command(MESSAGE_TYPE.RECONCILE),
+      tabId: targetTabId,
+      shouldReload: reloadCurrentSite,
+      refreshState: refresh,
+      reloadTab: (tabId) => activeTab.reload(tabId),
+    });
+    showPostChangeWarning(result);
   } catch { showError("Could not grant site access."); }
   finally { setBusy(false); render(); }
 }
@@ -433,9 +452,17 @@ elements.globalToggle.addEventListener("change", async () => {
   if (busy || !state) return;
   setBusy(true, state.enabled ? "Turning off…" : "Turning on…");
   showError();
+  const targetTabId = currentTab.id;
+  const reloadCurrentSite = Boolean(model.currentSite);
   try {
-    await command(MESSAGE_TYPE.SET_ENABLED, { expectedRevision: state.revision, enabled: !state.enabled });
-    await refresh();
+    const result = await completePopupStateChange({
+      performChange: () => command(MESSAGE_TYPE.SET_ENABLED, { expectedRevision: state.revision, enabled: !state.enabled }),
+      tabId: targetTabId,
+      shouldReload: reloadCurrentSite,
+      refreshState: refresh,
+      reloadTab: (tabId) => activeTab.reload(tabId),
+    });
+    showPostChangeWarning(result);
   } catch (error) { await refreshIfStale(error); showError("Could not save changes."); }
   finally { setBusy(false); render(); }
 });

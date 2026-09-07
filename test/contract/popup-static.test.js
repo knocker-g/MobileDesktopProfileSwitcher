@@ -103,9 +103,14 @@ test("profile uses accessible selects and deprecated profile buttons are absent"
 });
 
 test("host summaries, permission warning, and edit footer controls are present", () => {
+  const currentRenderer = js.match(/function renderCurrent\(\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const currentSiteBranch = currentRenderer.match(/else \{([\s\S]*?)\n  \}\n\n  elements\.siteList/)?.[1] ?? "";
+  const siteLoop = currentRenderer.match(/for \(const site of state\.sites\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   assert.match(js, /function hostSummary\(/);
   assert.match(js, /for \(const host of site\.hosts\)/);
   assert.match(js, /function permissionWarning\(/);
+  assert.doesNotMatch(currentSiteBranch, /permissionWarning/);
+  assert.match(siteLoop, /permissionWarning\(site\)/);
   assert.match(js, /addHostRow\(form\)/);
   assert.match(js, /remove\.setAttribute\("aria-label", hostname \? `Remove host \$\{hostname\}` : `Remove host \$\{index \+ 1\}`\)/);
   assert.match(html, /class="form-footer sticky-actions"/);
@@ -178,9 +183,18 @@ test("Current Site Profile change uses post-commit active-tab reload while edit 
   assert.match(js, /commitProfile: \(payload\) => command\(MESSAGE_TYPE\.SET_PROFILE, payload\)/);
   assert.match(js, /refreshState: refresh/);
   assert.match(js, /reloadTab: \(tabId\) => activeTab\.reload\(tabId\)/);
-  assert.match(js, /Profile changed, but the page could not be reloaded\./);
-  assert.doesNotMatch(js, /SET_ENABLED[\s\S]{0,300}activeTab\.reload/);
+  assert.match(js, /The change succeeded, but the page could not be reloaded\./);
   assert.doesNotMatch(js, /UPDATE_SITE[\s\S]{0,300}activeTab\.reload/);
+});
+
+test("Global, matching Grant, and matching Delete reuse conditional post-success reload", () => {
+  assert.match(js, /completePopupStateChange/);
+  assert.match(js, /const reloadCurrentSite = Boolean\(model\.currentSite\)/);
+  assert.match(js, /const reloadCurrentSite = model\.currentSite\?\.id === site\.id/);
+  assert.match(js, /const reloadCurrentSite = model\.currentSite\?\.id === siteId/);
+  assert.match(js, /performChange: \(\) => command\(MESSAGE_TYPE\.SET_ENABLED/);
+  assert.match(js, /performChange: \(\) => command\(MESSAGE_TYPE\.RECONCILE\)/);
+  assert.match(js, /MESSAGE_TYPE\.DELETE_SITE/);
 });
 
 test("popup controller sends only allowlisted typed runtime commands", () => {
