@@ -13,6 +13,7 @@ import {
   validateSiteForm,
 } from "./popup-model.js";
 import { requestExactHostAccess } from "./popup-actions.js";
+import { applyCurrentSiteProfile } from "./profile-change.js";
 
 const activeTab = createActiveTabAdapter(chrome.tabs);
 const permissions = createChromePermissionsAdapter(chrome.permissions);
@@ -57,6 +58,7 @@ let view = VIEW.CURRENT;
 let form = null;
 let busy = false;
 let pendingDeleteSiteId = null;
+let currentTab = Object.freeze({ id: null, url: null });
 
 async function command(type, payload = {}) {
   const response = await chrome.runtime.sendMessage({ type, payload });
@@ -113,12 +115,13 @@ function paragraph(text, className = "") {
 }
 
 async function refresh() {
-  const [nextState, currentTab] = await Promise.all([
+  const [nextState, nextCurrentTab] = await Promise.all([
     command(MESSAGE_TYPE.GET_STATE),
     activeTab.getCurrentTab(),
   ]);
   const inspections = await command(MESSAGE_TYPE.INSPECT_PERMISSIONS);
   state = nextState;
+  currentTab = nextCurrentTab;
   model = createPopupModel(state, currentTab.url, inspections);
   if (currentTab.id !== null) {
     await actionBadge.set(currentTab.id, badgeTextForTab(state, currentTab.url, inspections)).catch(() => undefined);
@@ -137,9 +140,19 @@ async function quickProfile(siteId, profile) {
   if (busy || !state.enabled) return;
   setBusy(true, "Applying profile…");
   showError();
+  const targetTabId = currentTab.id;
   try {
-    await command(MESSAGE_TYPE.SET_PROFILE, { expectedRevision: state.revision, siteId, profile });
-    await refresh();
+    const result = await applyCurrentSiteProfile({
+      siteId,
+      profile,
+      expectedRevision: state.revision,
+      tabId: targetTabId,
+      commitProfile: (payload) => command(MESSAGE_TYPE.SET_PROFILE, payload),
+      refreshState: refresh,
+      reloadTab: (tabId) => activeTab.reload(tabId),
+    });
+    if (result.warning === "refresh_failed") showError("Profile changed, but the popup could not be refreshed.");
+    else if (result.warning) showError("Profile changed, but the page could not be reloaded.");
   } catch (error) {
     await refreshIfStale(error);
     showError("Could not save changes.");
@@ -296,12 +309,6 @@ function renderCurrent() {
     if (pendingDeleteSiteId === site.id) top.classList.add("is-confirming");
     top.append(editSiteTrigger(site), siteCardActions(site));
     item.append(top);
-    item.append(profileSelect(
-      site.profile,
-      !state.enabled || busy,
-      (profile) => quickProfile(site.id, profile),
-      `site-profile-${site.id}`,
-    ));
     if (!model.permissionReadyBySiteId[site.id]) item.append(permissionWarning(site));
     elements.siteList.append(item);
   }

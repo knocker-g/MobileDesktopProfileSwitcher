@@ -17,5 +17,10 @@ export function createActiveTabAdapter(tabsApi) {
       const tab = Array.isArray(tabs) ? tabs[0] : undefined;
       return typeof tab?.url === "string" ? tab.url : null;
     },
+    async reload(tabId) {
+      if (!Number.isInteger(tabId) || tabId < 0) throw new TypeError("A valid tab ID is required.");
+      if (typeof tabsApi.reload !== "function") throw new TypeError("The tabs reload API is unavailable.");
+      await tabsApi.reload(tabId);
+    },
   });
 }

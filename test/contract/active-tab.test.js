@@ -18,3 +18,11 @@ test("activeTab adapter returns only current tab id and URL for popup status", a
   const adapter = createActiveTabAdapter({ query: async () => [{ id: 42, url: "https://example.com/path", title: "Private title" }] });
   assert.deepEqual(await adapter.getCurrentTab(), { id: 42, url: "https://example.com/path" });
 });
+
+test("activeTab adapter reloads only the explicit current tab without tabs permission logic", async () => {
+  const calls = [];
+  const adapter = createActiveTabAdapter({ query: async () => [], reload: async (tabId) => calls.push(tabId) });
+  await adapter.reload(42);
+  assert.deepEqual(calls, [42]);
+  await assert.rejects(() => adapter.reload(null), /valid tab ID/);
+});

@@ -80,8 +80,6 @@ input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-s
 .remove-prompt { margin: 2px 0 6px; font-weight: 650; overflow-wrap: anywhere; }
 .inline-confirm-actions { display: flex; gap: 6px; }
 .compact-action { width: 100%; min-width: 0; padding-inline: 8px; }
-.site-card > .profile-field { margin: 6px 0 0; }
-.site-card > .profile-field label { margin-top: 4px; }
 .permission-warning { margin: 10px 0; padding: 10px; border: 1px solid color-mix(in srgb, #b7791f 55%, Canvas); border-radius: 8px; background: color-mix(in srgb, #b7791f 9%, Canvas); }
 .permission-warning p { font-weight: 650; }
 fieldset { margin: 8px 0 16px; padding: 0; border: 0; }

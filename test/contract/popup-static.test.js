@@ -98,6 +98,8 @@ test("profile uses accessible selects and deprecated profile buttons are absent"
   assert.match(js, /select\.addEventListener\("change"/);
   assert.doesNotMatch(js, /function profileButtons\(|aria-pressed.*profile/);
   assert.match(js, /elements\.formProfile\.value/);
+  assert.match(js, /"current-profile"/);
+  assert.doesNotMatch(js, /`site-profile-\$\{site\.id\}`/);
 });
 
 test("host summaries, permission warning, and edit footer controls are present", () => {
@@ -161,12 +163,24 @@ test("host removal is a compact accessible control and Add host behavior remains
   assert.match(js, /addHostRow\(form\)/);
 });
 
-test("native edit button provides keyboard activation without nesting the Profile select", () => {
+test("native edit button provides keyboard activation and Sites cards omit Profile selects", () => {
   const editTrigger = js.match(/function editSiteTrigger\(site\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const siteLoop = js.match(/for \(const site of state\.sites\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   assert.match(js, /trigger\.type = "button"/);
   assert.match(js, /trigger\.addEventListener\("click"/);
-  assert.match(js, /item\.append\(top\);[\s\S]*item\.append\(profileSelect\(/);
   assert.doesNotMatch(editTrigger, /profileSelect/);
+  assert.doesNotMatch(siteLoop, /profileSelect/);
+  assert.match(html, /<select id="form-profile"/);
+});
+
+test("Current Site Profile change uses post-commit active-tab reload while edit Save does not", () => {
+  assert.match(js, /applyCurrentSiteProfile\(\{/);
+  assert.match(js, /commitProfile: \(payload\) => command\(MESSAGE_TYPE\.SET_PROFILE, payload\)/);
+  assert.match(js, /refreshState: refresh/);
+  assert.match(js, /reloadTab: \(tabId\) => activeTab\.reload\(tabId\)/);
+  assert.match(js, /Profile changed, but the page could not be reloaded\./);
+  assert.doesNotMatch(js, /SET_ENABLED[\s\S]{0,300}activeTab\.reload/);
+  assert.doesNotMatch(js, /UPDATE_SITE[\s\S]{0,300}activeTab\.reload/);
 });
 
 test("popup controller sends only allowlisted typed runtime commands", () => {
