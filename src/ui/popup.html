@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MDPS</title>
+  <title>Mobile Desktop Profile Switcher</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <main id="app" aria-busy="true">
     <header class="app-header">
-      <strong class="brand">MDPS</strong>
-      <button id="global-toggle" type="button" class="toggle" disabled>Loading…</button>
+      <strong class="brand">Mobile Desktop Profile Switcher</strong>
+      <label class="global-switch" for="global-toggle">
+        <span id="global-state">Loading…</span>
+        <input id="global-toggle" type="checkbox" role="switch" aria-label="Global enabled" disabled>
+        <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+      </label>
     </header>
 
     <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
@@ -45,16 +49,6 @@
         </select>
 
         <div class="form-footer sticky-actions">
-          <div id="remove-area" class="remove-area" hidden>
-            <button id="start-remove" type="button" class="danger-link">Remove site</button>
-            <div id="remove-confirm" class="remove-confirm" hidden>
-              <p>Remove this site?</p>
-              <div class="confirm-actions">
-                <button id="cancel-remove" type="button" class="secondary">Cancel</button>
-                <button id="confirm-remove" type="button" class="danger">Remove</button>
-              </div>
-            </div>
-          </div>
           <div class="form-actions">
             <button id="cancel-form" type="button" class="secondary">Cancel</button>
             <button id="save-site" type="submit">Save</button>

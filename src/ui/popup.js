@@ -20,6 +20,7 @@ const actionBadge = createChromeActionBadgeAdapter(chrome.action);
 const popupElementIds = Object.freeze({
   app: "app",
   globalToggle: "global-toggle",
+  globalState: "global-state",
   status: "status",
   error: "error",
   currentView: "current-view",
@@ -34,11 +35,6 @@ const popupElementIds = Object.freeze({
   hostList: "host-list",
   addHost: "add-host",
   formProfile: "form-profile",
-  removeArea: "remove-area",
-  startRemove: "start-remove",
-  removeConfirm: "remove-confirm",
-  cancelRemove: "cancel-remove",
-  confirmRemove: "confirm-remove",
   cancelForm: "cancel-form",
   saveSite: "save-site",
 });
@@ -60,6 +56,7 @@ let model = null;
 let view = VIEW.CURRENT;
 let form = null;
 let busy = false;
+let pendingDeleteSiteId = null;
 
 async function command(type, payload = {}) {
   const response = await chrome.runtime.sendMessage({ type, payload });
@@ -176,6 +173,73 @@ function permissionWarning(site) {
   return warning;
 }
 
+function editSiteTrigger(site) {
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "site-edit-trigger";
+  trigger.setAttribute("aria-label", `Edit ${site.name} site`);
+  const heading = document.createElement("span");
+  heading.className = "site-card-heading";
+  const name = document.createElement("span");
+  name.className = "site-card-name";
+  name.textContent = site.name;
+  const icon = document.createElement("span");
+  icon.className = "edit-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "✎";
+  heading.append(name, icon);
+  trigger.append(heading, hostSummary(site));
+  trigger.addEventListener("click", () => openForm(createSiteForm({ site })));
+  return trigger;
+}
+
+function siteRemoveControl(site) {
+  const container = document.createElement("div");
+  container.className = "site-remove-area";
+  if (pendingDeleteSiteId === site.id) {
+    const prompt = paragraph(`Remove ${site.name}?`, "remove-prompt");
+    const actions = document.createElement("div");
+    actions.className = "inline-confirm-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "secondary compact-action";
+    cancel.textContent = "Cancel";
+    cancel.addEventListener("click", () => { pendingDeleteSiteId = null; render(); });
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = "danger compact-action";
+    confirm.textContent = "Remove";
+    confirm.setAttribute("aria-label", `Confirm remove ${site.name}`);
+    confirm.addEventListener("click", () => removeSite(site.id));
+    actions.append(cancel, confirm);
+    container.append(prompt, actions);
+  } else {
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "site-remove-button";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `Remove ${site.name}`);
+    remove.addEventListener("click", () => { pendingDeleteSiteId = site.id; render(); });
+    container.append(remove);
+  }
+  return container;
+}
+
+async function removeSite(siteId) {
+  if (busy) return;
+  setBusy(true, "Removing site…");
+  showError();
+  try {
+    await command(MESSAGE_TYPE.DELETE_SITE, { expectedRevision: state.revision, siteId });
+    pendingDeleteSiteId = null;
+    view = VIEW.CURRENT;
+    await refresh();
+  } catch (error) {
+    await refreshIfStale(error);
+    showError("Could not remove site.");
+  } finally { setBusy(false); render(); }
+}
+
 function renderCurrent() {
   elements.currentContent.replaceChildren();
   if (!model.hostname) {
@@ -210,24 +274,19 @@ function renderCurrent() {
     if (!model.currentPermissionReady) {
       elements.currentContent.append(permissionWarning(model.currentSite));
     }
-    const edit = document.createElement("button");
-    edit.type = "button";
-    edit.className = "secondary link-button";
-    edit.textContent = "Edit site";
-    edit.addEventListener("click", () => openForm(createSiteForm({ site: model.currentSite })));
-    elements.currentContent.append(edit);
   }
 
   elements.siteList.replaceChildren();
-  elements.otherSites.hidden = model.otherSites.length === 0;
-  elements.otherSitesSummary.textContent = `Registered sites (${model.otherSites.length})`;
-  for (const site of model.otherSites) {
+  elements.otherSites.hidden = state.sites.length === 0;
+  elements.otherSitesSummary.textContent = `Sites · ${state.sites.length}`;
+  for (const site of state.sites) {
     const item = document.createElement("li");
     item.className = "site-card";
-    const name = document.createElement("span");
-    name.className = "site-card-name";
-    name.textContent = site.name;
-    item.append(name, hostSummary(site));
+    const top = document.createElement("div");
+    top.className = "site-card-top";
+    if (pendingDeleteSiteId === site.id) top.classList.add("is-confirming");
+    top.append(editSiteTrigger(site), siteRemoveControl(site));
+    item.append(top);
     item.append(profileSelect(
       site.profile,
       !state.enabled || busy,
@@ -235,12 +294,6 @@ function renderCurrent() {
       `site-profile-${site.id}`,
     ));
     if (!model.permissionReadyBySiteId[site.id]) item.append(permissionWarning(site));
-    const edit = document.createElement("button");
-    edit.type = "button";
-    edit.className = "secondary";
-    edit.textContent = "Edit site";
-    edit.addEventListener("click", () => openForm(createSiteForm({ site })));
-    item.append(edit);
     elements.siteList.append(item);
   }
 }
@@ -291,15 +344,13 @@ function renderForm() {
   });
   elements.formProfile.value = form.profile;
   elements.formProfile.disabled = busy;
-  elements.removeArea.hidden = view !== VIEW.EDIT;
-  elements.removeConfirm.hidden = true;
-  elements.startRemove.hidden = false;
 }
 
 function render() {
   if (!state || !model) return;
-  elements.globalToggle.textContent = state.enabled ? "ON" : "OFF";
-  elements.globalToggle.setAttribute("aria-pressed", String(state.enabled));
+  elements.globalState.textContent = state.enabled ? "On" : "Off";
+  elements.globalToggle.checked = state.enabled;
+  elements.globalToggle.setAttribute("aria-checked", String(state.enabled));
   elements.globalToggle.disabled = busy;
   elements.currentView.hidden = view !== VIEW.CURRENT;
   elements.formView.hidden = view === VIEW.CURRENT;
@@ -358,7 +409,7 @@ async function grantSite(site) {
   finally { setBusy(false); render(); }
 }
 
-elements.globalToggle.addEventListener("click", async () => {
+elements.globalToggle.addEventListener("change", async () => {
   if (busy || !state) return;
   setBusy(true, state.enabled ? "Turning off…" : "Turning on…");
   showError();
@@ -371,18 +422,6 @@ elements.globalToggle.addEventListener("click", async () => {
 elements.siteForm.addEventListener("submit", saveForm);
 elements.addHost.addEventListener("click", () => { syncFormFromDom(); form = addHostRow(form); renderForm(); });
 elements.cancelForm.addEventListener("click", () => { view = VIEW.CURRENT; showError(); render(); });
-elements.startRemove.addEventListener("click", () => { elements.startRemove.hidden = true; elements.removeConfirm.hidden = false; });
-elements.cancelRemove.addEventListener("click", () => { elements.startRemove.hidden = false; elements.removeConfirm.hidden = true; });
-elements.confirmRemove.addEventListener("click", async () => {
-  if (busy || !form.siteId) return;
-  setBusy(true, "Removing site…");
-  try {
-    await command(MESSAGE_TYPE.DELETE_SITE, { expectedRevision: state.revision, siteId: form.siteId });
-    view = VIEW.CURRENT;
-    await refresh();
-  } catch (error) { await refreshIfStale(error); showError("Could not remove site."); }
-  finally { setBusy(false); render(); }
-});
 
 refresh().then(() => {
   elements.status.textContent = "";
