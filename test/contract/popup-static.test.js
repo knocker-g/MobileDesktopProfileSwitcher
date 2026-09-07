@@ -116,6 +116,9 @@ test("host summaries, permission warning, and edit footer controls are present",
 test("site cards separate edit, profile, and inline removal interactions", () => {
   assert.match(js, /function editSiteTrigger\(site\)/);
   assert.match(js, /trigger\.setAttribute\("aria-label", `Edit \$\{site\.name\} site`\)/);
+  assert.match(js, /icon\.className = "edit-icon"/);
+  assert.match(js, /icon\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(js, /heading\.append\(name, icon\)/);
   assert.match(js, /trigger\.append\(heading, hostSummary\(site\)\)/);
   assert.match(js, /function siteCardActions\(site\)/);
   assert.match(js, /remove\.setAttribute\("aria-label", `Remove \$\{site\.name\}`\)/);
@@ -126,11 +129,13 @@ test("site cards separate edit, profile, and inline removal interactions", () =>
   assert.match(js, /elements\.otherSitesSummary\.textContent = `Sites · \$\{state\.sites\.length\}`/);
   assert.match(js, /for \(const site of state\.sites\)/);
   assert.match(js, /function siteCardActions\(site\)/);
-  assert.match(js, /edit\.className = "site-icon-button site-edit-button"/);
+  assert.doesNotMatch(js, /site-edit-button|container\.append\(edit/);
   assert.match(js, /remove\.className = "site-icon-button site-remove-button"/);
   assert.match(css, /\.site-card-actions\s*\{[^}]*display:\s*flex[^}]*align-items:\s*flex-start/s);
   assert.match(css, /\.site-icon-button, \.host-remove-button\s*\{[^}]*width:\s*44px[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s);
   assert.match(css, /\.site-card-top\.is-confirming/);
+  assert.match(css, /\.site-card-heading\s*\{[^}]*justify-content:\s*flex-start[^}]*gap:\s*6px/s);
+  assert.doesNotMatch(css, /\.site-edit-button/);
   assert.doesNotMatch(js, /textContent = "Edit site"/);
 });
 

@@ -70,12 +70,12 @@ input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-s
 .site-card-top.is-confirming .site-card-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .site-edit-trigger { display: block; min-height: 44px; padding: 2px 4px; border: 0; background: transparent; color: CanvasText; text-align: left; }
 .site-edit-trigger:hover, .site-edit-trigger:active { background: var(--color-neutral-hover); }
-.site-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.site-card-heading { display: flex; align-items: baseline; justify-content: flex-start; gap: 6px; min-width: 0; }
+.edit-icon { flex: 0 0 auto; color: var(--muted); font-size: .95rem; font-weight: 400; }
 .site-edit-trigger .host-summary { margin: 4px 0 2px; }
 .site-card-actions { display: flex; align-items: flex-start; min-width: 0; }
 .site-icon-button, .host-remove-button { width: 44px; min-width: 44px; min-height: 44px; padding: 0; border-color: transparent; background: transparent; line-height: 1; }
 .site-icon-button:hover, .site-icon-button:active, .host-remove-button:hover, .host-remove-button:active { background: var(--color-neutral-hover); }
-.site-edit-button { color: var(--muted); font-size: 1rem; }
 .site-remove-button { color: var(--color-danger); font-size: 1.5rem; }
 .remove-prompt { margin: 2px 0 6px; font-weight: 650; overflow-wrap: anywhere; }
 .inline-confirm-actions { display: flex; gap: 6px; }

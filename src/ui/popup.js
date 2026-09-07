@@ -184,7 +184,11 @@ function editSiteTrigger(site) {
   const name = document.createElement("span");
   name.className = "site-card-name";
   name.textContent = site.name;
-  heading.append(name);
+  const icon = document.createElement("span");
+  icon.className = "edit-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = "✎";
+  heading.append(name, icon);
   trigger.append(heading, hostSummary(site));
   trigger.addEventListener("click", () => openForm(createSiteForm({ site })));
   return trigger;
@@ -211,19 +215,13 @@ function siteCardActions(site) {
     actions.append(cancel, confirm);
     container.append(prompt, actions);
   } else {
-    const edit = document.createElement("button");
-    edit.type = "button";
-    edit.className = "site-icon-button site-edit-button";
-    edit.textContent = "✎";
-    edit.setAttribute("aria-label", `Edit ${site.name} site`);
-    edit.addEventListener("click", () => openForm(createSiteForm({ site })));
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "site-icon-button site-remove-button";
     remove.textContent = "×";
     remove.setAttribute("aria-label", `Remove ${site.name}`);
     remove.addEventListener("click", () => { pendingDeleteSiteId = site.id; render(); });
-    container.append(edit, remove);
+    container.append(remove);
   }
   return container;
 }
