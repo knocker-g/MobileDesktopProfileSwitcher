@@ -42,7 +42,20 @@ test("Phase 7 exposes only the single popup action UI", () => {
   assert.deepEqual(manifest.action, {
     default_title: "MDPS",
     default_popup: "src/ui/popup.html",
+    default_icon: {
+      16: "icons/icon16.png",
+      32: "icons/icon32.png",
+    },
   });
   assert.equal(Object.hasOwn(manifest, "options_page"), false);
   assert.equal(Object.hasOwn(manifest, "options_ui"), false);
+});
+
+test("manifest and action reference the official extension icon set", () => {
+  assert.deepEqual(manifest.icons, {
+    16: "icons/icon16.png",
+    32: "icons/icon32.png",
+    48: "icons/icon48.png",
+    128: "icons/icon128.png",
+  });
 });

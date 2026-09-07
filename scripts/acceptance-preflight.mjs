@@ -58,7 +58,12 @@ export async function runAcceptancePreflight() {
     check("Popup and service-worker assets", async () => {
       assertion(manifest.action?.default_popup === "src/ui/popup.html", "Popup entry mismatch");
       assertion(manifest.background?.service_worker === "src/service-worker.js", "Worker entry mismatch");
-      await Promise.all([access(path.join(ROOT, manifest.action.default_popup)), access(path.join(ROOT, manifest.background.service_worker))]);
+      const iconPaths = [...Object.values(manifest.icons ?? {}), ...Object.values(manifest.action?.default_icon ?? {})];
+      await Promise.all([
+        access(path.join(ROOT, manifest.action.default_popup)),
+        access(path.join(ROOT, manifest.background.service_worker)),
+        ...iconPaths.map((iconPath) => access(path.join(ROOT, iconPath))),
+      ]);
     }),
     check("Required permission allowlist", () => {
       assertion(JSON.stringify(manifest.permissions) === JSON.stringify(["storage", "declarativeNetRequestWithHostAccess", "activeTab"]), "Required permissions changed");
