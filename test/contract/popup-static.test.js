@@ -71,6 +71,17 @@ test("responsive CSS avoids viewport-sized feedback loops and horizontal overflo
   assert.match(css, /min-height:\s*44px/);
 });
 
+test("unregistered current site uses one lightweight keyboard-accessible card trigger", () => {
+  assert.doesNotMatch(js, /add\.textContent = "Add this site"/);
+  assert.match(js, /add\.className = "current-site-trigger"/);
+  assert.match(js, /classList\.toggle\("unregistered-current"/);
+  assert.match(js, /add\.setAttribute\("aria-label", `Add \$\{model\.hostname\}`\)/);
+  assert.match(js, /chevron\.textContent = ">"/);
+  assert.match(js, /add\.type = "button"/);
+  assert.match(js, /add\.addEventListener\("click"/);
+  assert.match(css, /\.current-site-trigger\s*\{[^}]*min-height/s);
+});
+
 test("popup has one stable responsive width across every view", () => {
   assert.doesNotMatch(css, /grid-template-columns:\s*repeat\(3|text-overflow:\s*ellipsis|overflow-x:\s*(?:auto|scroll)/);
   assert.match(css, /html, body\s*\{[^}]*width:\s*400px[^}]*max-width:\s*100%/s);
@@ -94,7 +105,7 @@ test("host summaries, permission warning, and edit footer controls are present",
   assert.match(js, /for \(const host of site\.hosts\)/);
   assert.match(js, /function permissionWarning\(/);
   assert.match(js, /addHostRow\(form\)/);
-  assert.match(js, /remove\.setAttribute\("aria-label", `Remove host \$\{index \+ 1\}`\)/);
+  assert.match(js, /remove\.setAttribute\("aria-label", hostname \? `Remove host \$\{hostname\}` : `Remove host \$\{index \+ 1\}`\)/);
   assert.match(html, /class="form-footer sticky-actions"/);
   for (const id of ["cancel-form", "save-site"]) assert.match(html, new RegExp(`id="${id}"`));
   assert.doesNotMatch(html, /Remove site|start-remove|remove-confirm|confirm-remove/);
@@ -106,7 +117,7 @@ test("site cards separate edit, profile, and inline removal interactions", () =>
   assert.match(js, /function editSiteTrigger\(site\)/);
   assert.match(js, /trigger\.setAttribute\("aria-label", `Edit \$\{site\.name\} site`\)/);
   assert.match(js, /trigger\.append\(heading, hostSummary\(site\)\)/);
-  assert.match(js, /function siteRemoveControl\(site\)/);
+  assert.match(js, /function siteCardActions\(site\)/);
   assert.match(js, /remove\.setAttribute\("aria-label", `Remove \$\{site\.name\}`\)/);
   assert.match(js, /pendingDeleteSiteId === site\.id/);
   assert.match(js, /cancel\.addEventListener\("click", \(\) => \{ pendingDeleteSiteId = null; render\(\); \}\)/);
@@ -114,9 +125,35 @@ test("site cards separate edit, profile, and inline removal interactions", () =>
   assert.match(js, /MESSAGE_TYPE\.DELETE_SITE/);
   assert.match(js, /elements\.otherSitesSummary\.textContent = `Sites · \$\{state\.sites\.length\}`/);
   assert.match(js, /for \(const site of state\.sites\)/);
-  assert.match(css, /\.site-remove-button\s*\{[^}]*width:\s*44px[^}]*min-height:\s*44px/s);
+  assert.match(js, /function siteCardActions\(site\)/);
+  assert.match(js, /edit\.className = "site-icon-button site-edit-button"/);
+  assert.match(js, /remove\.className = "site-icon-button site-remove-button"/);
+  assert.match(css, /\.site-card-actions\s*\{[^}]*display:\s*flex[^}]*align-items:\s*flex-start/s);
+  assert.match(css, /\.site-icon-button, \.host-remove-button\s*\{[^}]*width:\s*44px[^}]*min-width:\s*44px[^}]*min-height:\s*44px/s);
   assert.match(css, /\.site-card-top\.is-confirming/);
   assert.doesNotMatch(js, /textContent = "Edit site"/);
+});
+
+test("action hierarchy uses light primary tokens and lightweight tertiary controls", () => {
+  for (const token of ["color-primary", "color-primary-hover", "color-primary-active", "color-primary-text"]) {
+    assert.match(css, new RegExp(`--${token}:`));
+  }
+  assert.doesNotMatch(css, /#1769e0|--accent:/i);
+  assert.match(css, /button\s*\{[^}]*background:\s*var\(--color-primary\)[^}]*color:\s*var\(--color-primary-text\)/s);
+  assert.match(css, /\.global-switch input:checked \+ \.switch-track\s*\{[^}]*var\(--color-primary\)/s);
+  assert.match(html, /id="save-site" type="submit"/);
+  assert.match(html, /id="add-host" type="button" class="tertiary-action"/);
+  assert.match(css, /\.tertiary-action\s*\{[^}]*width:\s*auto[^}]*border-color:\s*transparent[^}]*background:\s*transparent/s);
+});
+
+test("host removal is a compact accessible control and Add host behavior remains wired", () => {
+  assert.match(js, /remove\.className = "host-remove-button"/);
+  assert.match(js, /remove\.textContent = "×"/);
+  assert.match(js, /`Remove host \$\{hostname\}`/);
+  assert.match(js, /input\.addEventListener\("input"/);
+  assert.match(js, /removeHostRow\(form, index\)/);
+  assert.match(js, /elements\.addHost\.addEventListener\("click"/);
+  assert.match(js, /addHostRow\(form\)/);
 });
 
 test("native edit button provides keyboard activation without nesting the Profile select", () => {

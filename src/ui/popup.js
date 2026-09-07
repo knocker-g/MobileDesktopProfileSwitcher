@@ -167,6 +167,7 @@ function permissionWarning(site) {
   warning.append(paragraph("Site access required."));
   const grant = document.createElement("button");
   grant.type = "button";
+  grant.className = "secondary";
   grant.textContent = "Grant access";
   grant.addEventListener("click", () => grantSite(site));
   warning.append(grant);
@@ -183,19 +184,15 @@ function editSiteTrigger(site) {
   const name = document.createElement("span");
   name.className = "site-card-name";
   name.textContent = site.name;
-  const icon = document.createElement("span");
-  icon.className = "edit-icon";
-  icon.setAttribute("aria-hidden", "true");
-  icon.textContent = "✎";
-  heading.append(name, icon);
+  heading.append(name);
   trigger.append(heading, hostSummary(site));
   trigger.addEventListener("click", () => openForm(createSiteForm({ site })));
   return trigger;
 }
 
-function siteRemoveControl(site) {
+function siteCardActions(site) {
   const container = document.createElement("div");
-  container.className = "site-remove-area";
+  container.className = "site-card-actions";
   if (pendingDeleteSiteId === site.id) {
     const prompt = paragraph(`Remove ${site.name}?`, "remove-prompt");
     const actions = document.createElement("div");
@@ -214,13 +211,19 @@ function siteRemoveControl(site) {
     actions.append(cancel, confirm);
     container.append(prompt, actions);
   } else {
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "site-icon-button site-edit-button";
+    edit.textContent = "✎";
+    edit.setAttribute("aria-label", `Edit ${site.name} site`);
+    edit.addEventListener("click", () => openForm(createSiteForm({ site })));
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.className = "site-remove-button";
+    remove.className = "site-icon-button site-remove-button";
     remove.textContent = "×";
     remove.setAttribute("aria-label", `Remove ${site.name}`);
     remove.addEventListener("click", () => { pendingDeleteSiteId = site.id; render(); });
-    container.append(remove);
+    container.append(edit, remove);
   }
   return container;
 }
@@ -242,6 +245,7 @@ async function removeSite(siteId) {
 
 function renderCurrent() {
   elements.currentContent.replaceChildren();
+  elements.currentContent.classList.toggle("unregistered-current", Boolean(model.hostname && !model.currentSite));
   if (!model.hostname) {
     elements.currentContent.append(paragraph("This page cannot be added."));
     const manual = document.createElement("button");
@@ -251,11 +255,18 @@ function renderCurrent() {
     manual.addEventListener("click", () => openForm(createSiteForm()));
     elements.currentContent.append(manual);
   } else if (!model.currentSite) {
-    elements.currentContent.append(paragraph(model.hostname, "hostname"));
     const add = document.createElement("button");
     add.type = "button";
-    add.className = "link-button";
-    add.textContent = "Add this site";
+    add.className = "current-site-trigger";
+    add.setAttribute("aria-label", `Add ${model.hostname}`);
+    const hostname = document.createElement("span");
+    hostname.className = "hostname";
+    hostname.textContent = model.hostname;
+    const chevron = document.createElement("span");
+    chevron.className = "chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = ">";
+    add.append(hostname, chevron);
     add.addEventListener("click", () => openForm(createSiteForm({ hostname: model.hostname })));
     elements.currentContent.append(add);
   } else {
@@ -285,7 +296,7 @@ function renderCurrent() {
     const top = document.createElement("div");
     top.className = "site-card-top";
     if (pendingDeleteSiteId === site.id) top.classList.add("is-confirming");
-    top.append(editSiteTrigger(site), siteRemoveControl(site));
+    top.append(editSiteTrigger(site), siteCardActions(site));
     item.append(top);
     item.append(profileSelect(
       site.profile,
@@ -330,9 +341,13 @@ function renderForm() {
     input.setAttribute("aria-label", `Host ${index + 1}`);
     const remove = document.createElement("button");
     remove.type = "button";
-    remove.className = "secondary";
-    remove.textContent = "Remove";
-    remove.setAttribute("aria-label", `Remove host ${index + 1}`);
+    remove.className = "host-remove-button";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", hostname ? `Remove host ${hostname}` : `Remove host ${index + 1}`);
+    input.addEventListener("input", () => {
+      const currentHostname = input.value.trim();
+      remove.setAttribute("aria-label", currentHostname ? `Remove host ${currentHostname}` : `Remove host ${index + 1}`);
+    });
     remove.disabled = form.hosts.length <= 1;
     remove.addEventListener("click", () => {
       syncFormFromDom();

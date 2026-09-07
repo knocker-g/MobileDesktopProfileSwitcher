@@ -1,8 +1,12 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --accent: #1769e0;
-  --danger: #b42318;
+  --color-primary: #91d3f0;
+  --color-primary-hover: #78c5e8;
+  --color-primary-active: #60b6dc;
+  --color-primary-text: #102a3a;
+  --color-danger: #b42318;
+  --color-neutral-hover: color-mix(in srgb, CanvasText 8%, Canvas);
   --border: color-mix(in srgb, CanvasText 18%, Canvas);
   --muted: color-mix(in srgb, CanvasText 68%, Canvas);
   --surface: color-mix(in srgb, CanvasText 4%, Canvas);
@@ -20,7 +24,9 @@ h2 { margin: 20px 0 10px; font-size: .9rem; }
 p { margin: 8px 0; }
 button, input, select { width: 100%; min-width: 0; min-height: 44px; font: inherit; }
 button, select, input { border: 1px solid var(--border); border-radius: 8px; }
-button { padding: 9px 14px; background: var(--accent); color: white; cursor: pointer; }
+button { padding: 9px 14px; background: var(--color-primary); color: var(--color-primary-text); cursor: pointer; }
+button:hover { background: var(--color-primary-hover); }
+button:active { background: var(--color-primary-active); }
 button:disabled, select:disabled { cursor: default; opacity: .58; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
 input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-size: 16px; }
@@ -28,19 +34,26 @@ input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-s
 .global-switch input { position: absolute; width: 1px; min-height: 1px; opacity: 0; }
 .switch-track { position: relative; flex: 0 0 46px; width: 46px; height: 26px; border: 1px solid var(--border); border-radius: 999px; background: var(--muted); transition: background-color .15s ease; }
 .switch-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: Canvas; transition: transform .15s ease; }
-.global-switch input:checked + .switch-track { background: var(--accent); }
+.global-switch input:checked + .switch-track { background: var(--color-primary); }
 .global-switch input:checked + .switch-track .switch-thumb { transform: translateX(20px); }
 .global-switch input:focus-visible + .switch-track { outline: 3px solid #ffbf47; outline-offset: 2px; }
 .global-switch:has(input:disabled) { cursor: default; opacity: .58; }
 .secondary { background: Canvas; color: CanvasText; }
-.danger { background: var(--danger); border-color: var(--danger); }
-.danger-link { background: Canvas; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 65%, Canvas); }
+.secondary:hover { background: var(--color-neutral-hover); }
+.danger { background: var(--color-danger); border-color: var(--color-danger); color: white; }
+.danger:hover { background: color-mix(in srgb, var(--color-danger) 86%, black); }
+.tertiary-action { width: auto; min-width: 0; padding-inline: 6px; border-color: transparent; background: transparent; color: CanvasText; text-align: left; }
+.tertiary-action:hover, .tertiary-action:active { background: var(--color-neutral-hover); }
 .status { min-height: 0; margin: 0; padding: 0 16px; color: var(--muted); }
 .status:not(:empty), .error { margin: 12px 16px 0; padding: 10px 12px; }
-.error { border-left: 4px solid var(--danger); border-radius: 6px; background: color-mix(in srgb, var(--danger) 10%, Canvas); }
+.error { border-left: 4px solid var(--color-danger); border-radius: 6px; background: color-mix(in srgb, var(--color-danger) 10%, Canvas); }
 .panel, .site-card { min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.panel.unregistered-current { padding: 0; border: 0; background: transparent; }
 .site-name, .site-card-name { display: block; font-size: 1.05rem; font-weight: 700; overflow-wrap: anywhere; }
 .hostname, .matching-label { overflow-wrap: anywhere; color: var(--muted); }
+.current-site-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 10px 12px; border-color: var(--border); background: var(--surface); color: CanvasText; text-align: left; }
+.current-site-trigger:hover, .current-site-trigger:active { background: var(--color-neutral-hover); }
+.chevron { flex: 0 0 auto; color: var(--muted); font-size: 1.15rem; }
 .host-summary { display: grid; gap: 5px; margin: 10px 0 14px; padding: 0; list-style: none; }
 .host-summary li { padding-left: 12px; overflow-wrap: anywhere; color: var(--muted); }
 .host-summary li::before { content: "•"; margin-left: -12px; margin-right: 6px; }
@@ -51,18 +64,21 @@ input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-s
 .registered-sites { margin-top: 18px; border-top: 1px solid var(--border); }
 .site-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .site-card { display: grid; gap: 0; padding-block: 10px; }
-.site-card-top { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: start; gap: 4px; }
+.site-card-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 4px; }
 .site-card-top.is-confirming { grid-template-columns: 1fr; }
 .site-card-top.is-confirming .site-edit-trigger { display: none; }
+.site-card-top.is-confirming .site-card-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .site-edit-trigger { display: block; min-height: 44px; padding: 2px 4px; border: 0; background: transparent; color: CanvasText; text-align: left; }
-.site-edit-trigger:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.site-edit-trigger:hover, .site-edit-trigger:active { background: var(--color-neutral-hover); }
 .site-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.edit-icon { flex: 0 0 auto; color: var(--muted); font-size: 1rem; }
 .site-edit-trigger .host-summary { margin: 4px 0 2px; }
-.site-remove-area { min-width: 0; }
-.site-remove-button { width: 44px; min-height: 44px; padding: 0; border-color: transparent; background: transparent; color: var(--danger); font-size: 1.5rem; line-height: 1; }
+.site-card-actions { display: flex; align-items: flex-start; min-width: 0; }
+.site-icon-button, .host-remove-button { width: 44px; min-width: 44px; min-height: 44px; padding: 0; border-color: transparent; background: transparent; line-height: 1; }
+.site-icon-button:hover, .site-icon-button:active, .host-remove-button:hover, .host-remove-button:active { background: var(--color-neutral-hover); }
+.site-edit-button { color: var(--muted); font-size: 1rem; }
+.site-remove-button { color: var(--color-danger); font-size: 1.5rem; }
 .remove-prompt { margin: 2px 0 6px; font-weight: 650; overflow-wrap: anywhere; }
-.inline-confirm-actions { display: grid; gap: 6px; }
+.inline-confirm-actions { display: flex; gap: 6px; }
 .compact-action { width: 100%; min-width: 0; padding-inline: 8px; }
 .site-card > .profile-field { margin: 6px 0 0; }
 .site-card > .profile-field label { margin-top: 4px; }
@@ -70,7 +86,8 @@ input, select { padding: 8px 10px; background: Canvas; color: CanvasText; font-s
 .permission-warning p { font-weight: 650; }
 fieldset { margin: 8px 0 16px; padding: 0; border: 0; }
 .host-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-bottom: 10px; }
-.host-row button { width: auto; min-width: 88px; }
+.host-row button { width: 44px; min-width: 44px; }
+.host-remove-button { color: color-mix(in srgb, var(--color-danger) 76%, CanvasText); font-size: 1.35rem; }
 .form-footer { display: flex; justify-content: flex-end; gap: 10px; margin: 18px -14px -14px; padding: 12px 14px; border-top: 1px solid var(--border); background: Canvas; }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .form-actions button { width: auto; min-width: 82px; }
@@ -79,8 +96,7 @@ fieldset { margin: 8px 0 16px; padding: 0; border: 0; }
 @media (max-width: 320px) {
   .app-header, .view { padding-inline: 12px; }
   .panel, .site-card { padding: 12px; }
-  .host-row { grid-template-columns: 1fr; }
-  .host-row button { width: 100%; }
+  .host-row { grid-template-columns: minmax(0, 1fr) 44px; }
   .form-footer { flex-wrap: wrap; margin-inline: -12px; padding-inline: 12px; }
   .form-actions { width: 100%; }
   .form-actions button { flex: 1 1 0; min-width: 0; }
