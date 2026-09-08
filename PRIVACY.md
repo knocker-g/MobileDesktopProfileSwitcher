@@ -72,5 +72,4 @@ This policy may be updated when MDPS functionality or applicable requirements ch
 
 ## Contact
 
-[Developer contact to be added before publication]
-
+knocker.dev@gmail.com

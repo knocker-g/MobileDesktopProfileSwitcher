@@ -4,7 +4,6 @@ Internal release document. Verify all fields against the Chrome Web Store dashbo
 
 ## Publication blockers
 
-- **Developer-public support/contact email:** `NOT YET SET`. Do not use the GitHub noreply address. Add one public support address to the Privacy Policy and CWS contact information before publication.
 - **Privacy Policy URL:** `NOT YET AVAILABLE`. After the initial public repository push, the published `PRIVACY.md` is a candidate. Confirm that the final URL and presentation satisfy the current CWS requirements.
 - **Support URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher` — `TO BE VERIFIED AFTER INITIAL PUSH`. Do not submit it while the repository is empty or unavailable.
 - **CWS Privacy Practices selections:** `VERIFY IN CWS UI BEFORE SUBMISSION`, especially the current definition and presentation of browsing activity and user activity.
@@ -116,9 +115,9 @@ No account or special credentials are required.
 
 ## Support and contact plan
 
-- **Developer-public support/contact email:** `NOT YET SET` — release blocker.
+- **Developer-public support/contact email:** `knocker.dev@gmail.com`.
 - The GitHub noreply commit identity must not be presented as a support address.
-- Before publication, add one developer-public email to both `PRIVACY.md` and the relevant CWS support/contact fields.
+- Use `knocker.dev@gmail.com` in the Privacy Policy and the relevant CWS support/contact fields.
 - **Proposed support URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher` — `TO BE VERIFIED AFTER INITIAL PUSH`.
 - After the repository is publicly available, verify that the URL resolves, that issue/support expectations are clear, and that it meets the current CWS support URL requirements.
 
@@ -137,6 +136,6 @@ No account or special credentials are required.
 - Disclose browsing activity conservatively based on local registered-hostname storage and transient current-tab URL processing.
 - Re-evaluate the current definition of user activity.
 - Confirm all Limited Use certifications against the current wording.
-- Replace every `NOT YET SET`, `NOT YET AVAILABLE`, and `TO BE VERIFIED AFTER INITIAL PUSH` marker.
+- Replace every `NOT YET AVAILABLE` and `TO BE VERIFIED AFTER INITIAL PUSH` marker.
 - Verify the public support/contact email, Support URL, and Privacy Policy URL.
 - Confirm required listing assets and screenshots separately before submission.
