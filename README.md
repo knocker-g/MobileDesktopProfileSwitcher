@@ -1,53 +1,157 @@
-# MobileDesktopProfileSwitcher
+# Mobile Desktop Profile Switcher
 
-## 日本語
+[日本語](README.ja.md)
 
-viewport を変更せず、ユーザーが許可した site に固定 browser identity profile を適用して Desktop/Mobile Web の通常表示を選択させる Chromium Extension の計画である。
+Mobile Desktop Profile Switcher (MDPS) is a lightweight Chromium extension that lets users configure a browser identity profile for each registered site: **Default**, **Desktop**, or **Mobile**. The selected profile is automatically applied to matching registered hosts.
 
-> **現在はMVP Phase 5まで完了し、製品skeleton、Chrome 152 Profile Set、Site/storage/permission core、DNR generation/reconcileとadapterを実装済みです。storageの実Chrome adapter、service worker、UIはまだ未実装です。** 本 repository の記述は完全動作、production ready、全Chromium browser対応を意味しません。未検証事項は未検証として扱います。
+MDPS is not a device emulator. Desktop and Mobile profiles change only the `User-Agent` request header for matching top-level navigations. MDPS does not change the viewport or device pixel ratio, emulate touch input, alter JavaScript-visible navigator or platform identity, modify UA Client Hints, or manipulate page content.
 
-### Decision Summary
+## Status
 
-- MVP profile: `Default`、`Desktop`、`Mobile`。初期製品SetはChrome 152で、Desktop/Mobile UAを同じmilestoneから供給する。DefaultはUA変更なし。
-- MVP permission: `storage`、`declarativeNetRequestWithHostAccess`、現在host prefill限定の`activeTab`、exact runtime grant用`optional_host_permissions`。`tabs`、`scripting`、install時host grantは不採用。
-- architecture: popup/settings → storage正本のSite（複数明示host+1 profile）→ exact user grant → hostごとのDNR dynamic rule → reload。Global OFFはruleを全削除。Profile Setは製品同梱で外部取得なし。
-- technical risks: UA/UA-CH/JavaScript/Workerの意図的な不一致、Android Chromium API差、permission/storage/DNR lifecycle、rule limit、YouTube側の判定変更。
-- 実装gate: PC exact-host permission最小cycleとPhase 1自動検証はPASS。Chrome 152 real-browser Acceptance、Global OFF/ON、storage/DNR rollback・recovery、rule limit、PC/Android product lifecycle、CWS reviewが残る。
-- verification: pure coreとChrome adapterを分離し、Level 1 Static/Unit、Level 2 PC integration runner、Level 3 PC manual smoke、Level 4 Android/Quetta final smokeの順で確認する。手動予算はPC 1〜2 session、Android最終1 session。
-- UA version policy: 実行中majorへ追従せず、Desktop/Mobileで同じmilestoneを使う検証済みProfile Setを通常package更新として管理。任意version/UA editorなし。
-- MAIN-world navigator modification: YouTube成立条件では不要だったためMVP不採用。
-- Client Hints 整合性: **supported Extension API だけで完全整合できるとは現時点で確認できない**。特に `navigator.userAgentData` と Worker/high-entropy 値が gate。
-- Chrome Web Store: **条件付きで公開可能性あり**。optional exact-host grantとnarrow single purposeは適合方向。optional capability envelope、保持permission、`activeTab`の説明とlifecycle再現性がgate。
-- 現時点評価: **CONDITIONAL GO**。UA-only方式は対象条件で成立し、Chrome 152 Setを実装済み。permission/storage/DNR lifecycle、Chrome 152実browser、一般site、CWS検証が残る。
+Version 1.0.0 has a complete MVP implementation. The release candidate has passed the consolidated PC Chrome acceptance workflow and actual-device validation with Quetta on Android. These results do not guarantee compatibility with every website or Chromium-based browser.
 
-### Documents
+## Features
 
-- [Product Goal](PRODUCT_GOAL.md) / [Non-Goals](NON_GOALS.md) / [Supported Browsers](SUPPORTED_BROWSERS.md)
-- [User Stories](USER_STORIES.md) / [Profile Model](PROFILE_MODEL.md) / [Profile Set Policy](PROFILE_SET_POLICY.md) / [Site Settings Model](SITE_SETTINGS_MODEL.md) / [UI Spec](UI_SPEC.md)
-- [Permissions Analysis](PERMISSIONS_ANALYSIS.md) / [Permission Lifecycle](PERMISSION_LIFECYCLE.md) / [DNR Rule Model](DNR_RULE_MODEL.md) / [Storage Model](STORAGE_MODEL.md)
-- [Browser Identity Investigation](BROWSER_IDENTITY_INVESTIGATION.md) / [Technical Investigation Plan](TECHNICAL_INVESTIGATION_PLAN.md)
-- [Safety Boundaries](SAFETY_BOUNDARIES.md) / [Privacy Model](PRIVACY_MODEL.md) / [CWS Publication Notes](CWS_PUBLICATION_NOTES.md)
-- [MVP Scope](MVP_SCOPE.md) / [Future Scope](FUTURE_SCOPE.md)
-- [MVP Implementation Plan](MVP_IMPLEMENTATION_PLAN.md) / [Acceptance Test Strategy](ACCEPTANCE_TEST_STRATEGY.md)
+- Per-site Default, Desktop, or Mobile profiles
+- Multiple explicit hosts grouped into one logical Site
+- Automatic application on matching top-level navigation
+- Global On/Off without deleting saved Sites or permissions
+- Runtime permission grants for exact registered hosts
+- Permission-loss detection and a user-initiated recovery flow
+- Quick profile switching for the current Site
+- Automatic current-page reload after relevant explicit user operations succeed
+- Local-only settings, with no telemetry or analytics
+- Chromium Manifest V3 architecture
 
-## English
+## Site model
 
-This repository plans a Chromium extension that leaves the viewport unchanged and applies a fixed browser identity profile to user-approved sites, letting normal site behavior select Desktop or Mobile Web.
+One logical Site can contain multiple explicit hosts and has one shared profile. For example:
 
-> **MVP Phase 8 preflight is prepared: the product, responsive Single Popup, zero-dependency acceptance preflight, and consolidated PC checklist are committed. The PC manual acceptance result is still pending.** Nothing here claims production readiness or compatibility with every Chromium browser. Unverified items remain explicitly unverified.
+```text
+YouTube
+- www.youtube.com
+- m.youtube.com
+```
 
-### Decision Summary
+YouTube is a tested example, not a service-specific product dependency. MDPS supports explicit hostnames only; it does not rewrite, redirect, or canonicalize page URLs.
 
-- MVP profiles: `Default`, `Desktop`, and `Mobile`. The initial product set is Chrome 152 and supplies both UAs at the same milestone; Default makes no UA change.
-- MVP permissions: `storage`, `declarativeNetRequestWithHostAccess`, `activeTab` limited to current-host prefill, and optional host permission for exact runtime grants. Exclude `tabs`, `scripting`, and install-time host grants.
-- Architecture: Single Popup → storage-authoritative Site (multiple explicit hosts plus one profile) → exact user grant → one DNR dynamic rule per host → reload. Global OFF removes every rule. The Profile Set is bundled with no external lookup.
-- Risks: intentional UA versus UA-CH/JavaScript/Worker inconsistency, Android Chromium API differences, permission/storage/DNR lifecycle, rule limits, and changing YouTube detection.
-- Implementation gates: the minimum PC exact-host permission cycle and Phase 1 automation pass. Chrome 152 real-browser acceptance, Global OFF/ON, storage/DNR rollback and recovery, rule limits, PC/Android product lifecycle, and CWS review remain.
-- Verification separates pure core from Chrome adapters and proceeds through Level 1 Static/Unit, Level 2 PC integration runner, Level 3 PC manual smoke, and Level 4 Android/Quetta final smoke. The manual budget is one or two PC sessions and one final Android session.
-- UA version policy: do not track the running major; manage a packaged Verified Profile Set whose Desktop and Mobile values share one milestone. No arbitrary version or UA editor.
-- MAIN-world navigator modification: excluded from MVP because the YouTube success condition did not require it.
-- Client Hints consistency: **not currently confirmed achievable using only supported Extension APIs**, especially for `navigator.userAgentData`, Worker, and high-entropy values.
-- Chrome Web Store: **conditionally publishable**. Optional exact-host grants and a narrow purpose are favorable; explaining the optional capability envelope, retained permission, and `activeTab`, plus reproducible lifecycle behavior, are gates.
-- Current decision: **CONDITIONAL GO**. UA-only passed the target conditions and the Chrome 152 set is implemented. Permission/storage/DNR lifecycle, Chrome 152 real-browser, general-site, and CWS validation remain.
+## Profiles
 
-The Documents list above is language-neutral and links to every bilingual specification file.
+### Default
+
+MDPS does not override the Site's `User-Agent`.
+
+### Desktop
+
+The initial Verified Profile Set uses Chrome milestone 152:
+
+```text
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36
+```
+
+### Mobile
+
+The initial Verified Profile Set uses Chrome milestone 152:
+
+```text
+Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Mobile Safari/537.36
+```
+
+Desktop and Mobile intentionally use the same verified Chrome milestone. The Profile Set is bundled with each MDPS release: MDPS does not follow the installed browser's major version, fetch a latest UA remotely, or expose arbitrary UA editing.
+
+## How it works
+
+MDPS uses Manifest V3 `chrome.declarativeNetRequest` dynamic rules derived from its locally stored Site settings. It creates one rule per registered and fully permitted host. A rule applies to top-level `main_frame` requests over HTTP or HTTPS and sets only the request `User-Agent` header.
+
+MDPS does not modify subresources, response headers, UA Client Hints, JavaScript identity, or the viewport. It has no content script and performs no redirects.
+
+## Permissions
+
+Required extension permissions:
+
+- `storage`: stores the global state and registered Site settings locally.
+- `declarativeNetRequestWithHostAccess`: applies the selected UA profile to permitted hosts.
+- `activeTab`: detects the current Site while the user interacts with the popup and reloads that current tab after relevant explicit operations.
+
+The manifest declares the following optional host-permission capability envelope so users can register arbitrary explicit hosts:
+
+```text
+http://*/*
+https://*/*
+```
+
+This does not grant permanent access to every website. When a Site is added, MDPS requests only the exact canonical hostname, as a pair:
+
+```text
+https://hostname/*
+http://hostname/*
+```
+
+MDPS does not request browsing-history access.
+
+## Privacy
+
+MDPS has no telemetry, analytics, external server, or remote configuration. It does not collect browsing history or page content, access cookies, authentication or account data, or sell or share data.
+
+Settings remain in local extension storage. Registered Site information includes canonical hostnames. While the user interacts with the popup, the current tab URL may be processed transiently for current-Site detection; MDPS persists only the canonical hostname needed by a registered Site, not its path, query, or fragment.
+
+## Scope and safety
+
+MDPS is a predictable per-site profile switcher, not a general identity generator or bypass tool. It does not provide custom UA editing, profile rotation, proxy or IP manipulation, cookie or authentication manipulation, CAPTCHA/rate-limit/restriction bypass, service-specific internal API spoofing, fingerprint randomization, page-content manipulation, or viewport/device emulation.
+
+## Development / unpacked installation
+
+There is no published Chrome Web Store or GitHub Release URL yet. To load the current source for development:
+
+1. Clone or download this repository.
+2. Open `chrome://extensions` in Chrome or a compatible Chromium browser.
+3. Enable **Developer mode**.
+4. Select **Load unpacked**.
+5. Select the repository root—the directory containing `manifest.json`.
+
+## Usage
+
+1. Open the target site and then open the MDPS popup.
+2. Add the current Site.
+3. Add or edit its explicit hosts when necessary.
+4. Select Default, Desktop, or Mobile.
+5. Grant access to the displayed exact hosts when prompted.
+6. MDPS applies the selected profile to matching top-level navigations.
+
+Use the Global switch to suspend or restore all MDPS UA overrides without deleting saved Sites, selected profiles, or retained host permissions.
+
+## Tested environments
+
+- PC Chrome: consolidated MVP acceptance passed.
+- Quetta on Android: MVP actual-device validation passed.
+
+Other Chromium-based browsers and devices may differ in Extension API support and website behavior. They are not covered by a blanket compatibility guarantee.
+
+## Known limitations
+
+- Changing the UA does not guarantee that every website will select a different layout.
+- Websites may use signals other than the `User-Agent`, and their behavior can change without notice.
+- Desktop and Mobile profiles do not emulate complete devices.
+- Mobile on a PC keeps the normal PC viewport.
+- Desktop on Android keeps the native Android viewport.
+- The Profile Set is verified for an MDPS release rather than dynamically synchronized with the installed browser.
+
+## Development and verification
+
+The project uses Node's standard test runner and has no external runtime or test dependencies.
+
+```text
+npm test
+npm run verify
+npm run acceptance:preflight
+```
+
+Research probes and investigation material are kept separately under `investigation/` and must be excluded from the production extension package.
+
+Additional design and investigation documents include [Profile Set Policy](PROFILE_SET_POLICY.md), [Site Settings Model](SITE_SETTINGS_MODEL.md), [Permission Lifecycle](PERMISSION_LIFECYCLE.md), [DNR Rule Model](DNR_RULE_MODEL.md), [Storage Model](STORAGE_MODEL.md), and [Acceptance Test Strategy](ACCEPTANCE_TEST_STRATEGY.md).
+
+## License
+
+Licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 knocker-g
