@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "acceptance:preflight": "node scripts/acceptance-preflight.mjs",
+    "package:cws": "node scripts/package-cws.mjs",
     "test": "node --test",
     "verify": "node scripts/verify.mjs"
   },
