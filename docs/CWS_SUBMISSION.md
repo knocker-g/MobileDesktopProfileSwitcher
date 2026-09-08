@@ -4,8 +4,7 @@ Internal release document. Verify all fields against the Chrome Web Store dashbo
 
 ## Publication blockers
 
-- **Privacy Policy URL:** `NOT YET AVAILABLE`. After the initial public repository push, the published `PRIVACY.md` is a candidate. Confirm that the final URL and presentation satisfy the current CWS requirements.
-- **Support URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher` — `TO BE VERIFIED AFTER INITIAL PUSH`. Do not submit it while the repository is empty or unavailable.
+- **Privacy Policy URL acceptance:** `VERIFY IN CWS UI BEFORE SUBMISSION`. The public policy at `https://github.com/knocker-g/MobileDesktopProfileSwitcher/blob/main/PRIVACY.md` is anonymously accessible, but acceptance of this URL and presentation by the current CWS dashboard has not yet been verified.
 - **CWS Privacy Practices selections:** `VERIFY IN CWS UI BEFORE SUBMISSION`, especially the current definition and presentation of browsing activity and user activity.
 
 ## Listing copy
@@ -118,14 +117,14 @@ No account or special credentials are required.
 - **Developer-public support/contact email:** `knocker.dev@gmail.com`.
 - The GitHub noreply commit identity must not be presented as a support address.
 - Use `knocker.dev@gmail.com` in the Privacy Policy and the relevant CWS support/contact fields.
-- **Proposed support URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher` — `TO BE VERIFIED AFTER INITIAL PUSH`.
-- After the repository is publicly available, verify that the URL resolves, that issue/support expectations are clear, and that it meets the current CWS support URL requirements.
+- **Support URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher`.
+- **Public accessibility:** `VERIFIED`. The repository, README, LICENSE, Privacy Policy, and source tree were anonymously accessible after the initial push.
 
 ## Privacy Policy URL plan
 
-- **Current status:** `NOT YET AVAILABLE` — release blocker.
-- Candidate after the initial public push: the publicly rendered `PRIVACY.md` in the GitHub repository.
-- Before submission, confirm that the chosen URL is publicly accessible without authentication and satisfies the current CWS Privacy Policy URL and presentation requirements.
+- **Privacy Policy URL:** `https://github.com/knocker-g/MobileDesktopProfileSwitcher/blob/main/PRIVACY.md`.
+- **Public accessibility:** `VERIFIED` through anonymous HTTPS access after the initial push.
+- **CWS dashboard acceptance:** `VERIFY IN CWS UI BEFORE SUBMISSION`. Confirm that the current dashboard accepts this GitHub blob URL and presentation before submission.
 
 ## Final dashboard verification checklist
 
@@ -136,6 +135,6 @@ No account or special credentials are required.
 - Disclose browsing activity conservatively based on local registered-hostname storage and transient current-tab URL processing.
 - Re-evaluate the current definition of user activity.
 - Confirm all Limited Use certifications against the current wording.
-- Replace every `NOT YET AVAILABLE` and `TO BE VERIFIED AFTER INITIAL PUSH` marker.
-- Verify the public support/contact email, Support URL, and Privacy Policy URL.
+- Confirm that the current CWS dashboard accepts the recorded Privacy Policy URL.
+- Recheck the public support/contact email, Support URL, and Privacy Policy URL when entering the submission.
 - Confirm required listing assets and screenshots separately before submission.
