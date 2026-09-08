@@ -53,7 +53,7 @@ export async function runAcceptancePreflight() {
   const checks = [
     check("Manifest V3 and product identity", () => {
       assertion(manifest.manifest_version === 3, "Manifest must be V3");
-      assertion(manifest.name === "MobileDesktopProfileSwitcher", "Unexpected product name");
+      assertion(manifest.name === "Mobile Desktop Profile Switcher", "Unexpected product name");
     }),
     check("Popup and service-worker assets", async () => {
       assertion(manifest.action?.default_popup === "src/ui/popup.html", "Popup entry mismatch");

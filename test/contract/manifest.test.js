@@ -40,7 +40,7 @@ test("Phase 6 exposes only the module service worker entry point", () => {
 
 test("Phase 7 exposes only the single popup action UI", () => {
   assert.deepEqual(manifest.action, {
-    default_title: "MDPS",
+    default_title: "Mobile Desktop Profile Switcher",
     default_popup: "src/ui/popup.html",
     default_icon: {
       16: "icons/icon16.png",
