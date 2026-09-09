@@ -99,9 +99,13 @@ Settings remain in local extension storage. Registered Site information includes
 
 MDPS is a predictable per-site profile switcher, not a general identity generator or bypass tool. It does not provide custom UA editing, profile rotation, proxy or IP manipulation, cookie or authentication manipulation, CAPTCHA/rate-limit/restriction bypass, service-specific internal API spoofing, fingerprint randomization, page-content manipulation, or viewport/device emulation.
 
+## Installation
+
+Install MDPS from the [Chrome Web Store](https://chromewebstore.google.com/detail/mobile-desktop-profile-sw/ehodmekcjnghcibjjnieleddaibhbilk).
+
 ## Development / unpacked installation
 
-There is no published Chrome Web Store or GitHub Release URL yet. To load the current source for development:
+To load the current source for development:
 
 1. Clone or download this repository.
 2. Open `chrome://extensions` in Chrome or a compatible Chromium browser.

@@ -100,9 +100,13 @@ MDPSにはtelemetry、analytics、外部server、remote configurationがあり�
 
 MDPSは予測可能なper-site Profile Switcherであり、汎用identity generatorや制限回避toolではありません。任意UA編集、Profile rotation、proxy/IP操作、Cookie/Auth操作、CAPTCHA/rate-limit/restriction bypass、特定service内部API spoof、fingerprint randomization、page content操作、viewport/device emulationは提供しません。
 
+## インストール
+
+[Chrome Web Store](https://chromewebstore.google.com/detail/mobile-desktop-profile-sw/ehodmekcjnghcibjjnieleddaibhbilk)からMDPSをインストールできます。
+
 ## Development / unpacked installation
 
-現時点ではChrome Web Store URLやGitHub Release URLはありません。開発用に現在のsourceを読み込む手順：
+開発用に現在のsourceを読み込む手順：
 
 1. このrepositoryをcloneまたはdownloadします。
 2. Chromeまたは互換Chromium browserで`chrome://extensions`を開きます。
