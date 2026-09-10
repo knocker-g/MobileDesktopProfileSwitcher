@@ -217,7 +217,7 @@ export async function verifyCwsZip(archive, { root = repositoryRoot } = {}) {
   const manifestEntry = entries.find(({ name }) => name === "manifest.json");
   const manifest = JSON.parse(manifestEntry.content.toString("utf8"));
   const repositoryManifest = JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8"));
-  if (manifest.version !== repositoryManifest.version || manifest.version !== "1.0.1") {
+  if (manifest.version !== repositoryManifest.version || manifest.version !== "1.0.2") {
     throw new Error("CWS ZIP manifest version mismatch");
   }
   return Object.freeze({ entries, manifest });

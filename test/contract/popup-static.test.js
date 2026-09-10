@@ -90,6 +90,15 @@ test("popup has one stable responsive width across every view", () => {
   assert.match(css, /\.host-summary li\s*\{[^}]*overflow-wrap:\s*anywhere/s);
 });
 
+test("wide popup uses available width up to a centered content maximum without device detection", () => {
+  const wide = css.match(/@media\s*\(min-width:\s*401px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  assert.match(wide, /html, body\s*\{[^}]*width:\s*100%/s);
+  assert.match(wide, /main\s*\{[^}]*max-width:\s*40rem[^}]*margin-inline:\s*auto/s);
+  assert.doesNotMatch(wide, /grid-template-columns|display:\s*(?:grid|flex)/);
+  assert.match(css, /@media\s*\(max-width:\s*320px\)/);
+  assert.doesNotMatch(js, /matchMedia|innerWidth|outerWidth|screen\.|orientation|userAgent|navigator\./);
+});
+
 test("profile uses accessible selects and deprecated profile buttons are absent", () => {
   for (const profile of ["default", "desktop", "mobile"]) {
     assert.match(html, new RegExp(`<option value="${profile}">`, "i"));
