@@ -3,6 +3,7 @@ import { createMutationExecutor } from "../core/transaction.js";
 import { executePermissionRelease, inspectPermissionReadiness, planPermissionRelease } from "../core/permissions.js";
 import { normalizeHostInputs } from "../core/hosts.js";
 import { RUNTIME_ERROR, RuntimeError } from "./runtime-error.js";
+import { TRANSACTION_ERROR, TransactionError } from "../core/transaction-error.js";
 import {
   createSiteMutation,
   deleteSiteMutation,
@@ -56,6 +57,20 @@ export function createRuntimeBackend({ storage, derivedState, permissions, creat
     return Object.freeze({ state: committed, permissionCleanup, releasePlan: plan });
   }
 
+  function assertExpectedRevision(expectedRevision, state) {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision !== state.revision) {
+      throw new TransactionError(
+        TRANSACTION_ERROR.STALE_REVISION,
+        "Mutation expected revision does not match current revision.",
+        { expectedRevision, actualRevision: state.revision },
+      );
+    }
+  }
+
+  function sameHosts(left, right) {
+    return left.length === right.length && left.every((hostname, index) => hostname === right[index]);
+  }
+
   return Object.freeze({
     getState: current,
     inspectPermissions: async () => {
@@ -75,6 +90,33 @@ export function createRuntimeBackend({ storage, derivedState, permissions, creat
       await requirePermissions(added);
       return mutateAndRelease(expectedRevision, OPERATION_KIND.UPDATE_SITE,
         (state) => updateSiteMutation(state, site));
+    },
+    updateSiteWithPermission: async ({ expectedRevision, site, addedHosts }) => {
+      const before = await current();
+      assertExpectedRevision(expectedRevision, before);
+      const old = before.sites.find((item) => item.id === site.siteId);
+      if (!old) throw new RuntimeError(RUNTIME_ERROR.INVALID_MESSAGE, "Site was not found for permission verification.");
+      const existing = new Set(old.hosts.map((host) => host.hostname));
+      const actualAdded = hostsOfSiteInput(site).filter((hostname) => !existing.has(hostname));
+      if (!sameHosts(actualAdded, addedHosts)) {
+        throw new RuntimeError(RUNTIME_ERROR.INVALID_MESSAGE, "Added host hint does not match canonical storage state.");
+      }
+      await requirePermissions(actualAdded);
+      return mutateAndRelease(expectedRevision, OPERATION_KIND.UPDATE_SITE,
+        (state) => updateSiteMutation(state, site));
+    },
+    grantSiteAccess: async ({ expectedRevision, siteId, hosts }) => {
+      const state = await current();
+      assertExpectedRevision(expectedRevision, state);
+      const site = state.sites.find((item) => item.id === siteId);
+      if (!site) throw new RuntimeError(RUNTIME_ERROR.INVALID_MESSAGE, "Site was not found for permission verification.");
+      const actualHosts = site.hosts.map((host) => host.hostname);
+      if (!sameHosts(actualHosts, hosts)) {
+        throw new RuntimeError(RUNTIME_ERROR.INVALID_MESSAGE, "Permission host hint does not match canonical storage state.");
+      }
+      await requirePermissions(actualHosts);
+      const reconciliation = await derivedState.reconcile(state);
+      return Object.freeze({ state, reconciliation });
     },
     deleteSite: ({ expectedRevision, siteId }) => mutateAndRelease(
       expectedRevision, OPERATION_KIND.REMOVE_SITE, (state) => deleteSiteMutation(state, siteId)),

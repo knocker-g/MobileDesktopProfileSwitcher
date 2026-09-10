@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Permission Request Probe</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <h1>SW Permission Probe</h1>
+    <p class="target">Target: <code>https://example.com/*</code></p>
+    <button id="request" type="button">Request from Service Worker</button>
+    <button id="check" type="button">Check permission</button>
+    <button id="remove" type="button">Remove permission</button>
+    <section aria-live="polite" aria-atomic="true">
+      <h2>Status</h2>
+      <p id="summary">Open the probe and check the current state.</p>
+      <dl>
+        <dt>Permission</dt><dd id="permission">Unknown</dd>
+        <dt>SW continuation</dt><dd id="continuation">Unknown</dd>
+        <dt>Badge evidence</dt><dd id="badge">Unknown</dd>
+      </dl>
+      <ol id="events"></ol>
+    </section>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

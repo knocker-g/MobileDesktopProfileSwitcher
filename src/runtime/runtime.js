@@ -7,6 +7,9 @@ export const MESSAGE_TYPE = Object.freeze({
   INSPECT_PERMISSIONS: "inspect_permissions",
   CREATE_SITE: "create_site",
   UPDATE_SITE: "update_site",
+  CREATE_SITE_WITH_PERMISSION: "create_site_with_permission",
+  UPDATE_SITE_WITH_PERMISSION: "update_site_with_permission",
+  GRANT_SITE_ACCESS: "grant_site_access",
   DELETE_SITE: "delete_site",
   SET_PROFILE: "set_profile",
   SET_ENABLED: "set_enabled",
@@ -34,6 +37,10 @@ function validatePayload(type, payload) {
       assertExactKeys(payload, ["expectedRevision", "site"], "Create payload");
       assertExactKeys(payload.site ?? {}, ["name", "profile", "hosts"], "Create Site");
       break;
+    case MESSAGE_TYPE.CREATE_SITE_WITH_PERMISSION:
+    case MESSAGE_TYPE.UPDATE_SITE_WITH_PERMISSION:
+    case MESSAGE_TYPE.GRANT_SITE_ACCESS:
+      throw new RuntimeError(RUNTIME_ERROR.INVALID_MESSAGE, "Permission commands require the gesture-sensitive runtime path.");
     case MESSAGE_TYPE.UPDATE_SITE:
       assertExactKeys(payload, ["expectedRevision", "site"], "Update payload");
       assertExactKeys(payload.site ?? {}, ["siteId", "name", "profile", "hosts"], "Update Site");
@@ -51,7 +58,7 @@ function validatePayload(type, payload) {
   return payload;
 }
 
-function publicError(error) {
+export function publicRuntimeError(error) {
   return Object.freeze({
     ok: false,
     error: Object.freeze({
@@ -117,7 +124,7 @@ export function createRuntimeMessageHandler({ backend, derivedState }) {
       }
       return Object.freeze({ ok: true, value });
     } catch (error) {
-      return publicError(error);
+      return publicRuntimeError(error);
     }
   };
 }

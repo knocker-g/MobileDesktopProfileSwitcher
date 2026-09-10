@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Service Worker Permission Request Probe",
+  "version": "1.0.0",
+  "description": "Tests an exact-host permission request initiated by a service worker message handler.",
+  "permissions": [],
+  "optional_host_permissions": [
+    "https://example.com/*"
+  ],
+  "action": {
+    "default_title": "Service Worker Permission Request Probe",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  }
+}

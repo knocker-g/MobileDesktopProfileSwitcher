@@ -1,0 +1,12 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 340px; max-width: 100%; }
+main { display: grid; gap: 10px; padding: 16px; }
+h1, h2, p, dl, ol { margin: 0; }
+h1 { font-size: 18px; }
+h2 { margin-top: 6px; font-size: 15px; }
+.target { overflow-wrap: anywhere; }
+button { min-height: 44px; width: 100%; font: inherit; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 10px; }
+dd { margin: 0; overflow-wrap: anywhere; }
+ol { padding-left: 22px; font-size: 12px; }

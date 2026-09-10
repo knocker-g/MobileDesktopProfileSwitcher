@@ -74,7 +74,7 @@ test("tab and permission events refresh badge and reconcile without tabs permiss
   const chromeApi = fakeChromeEvents();
   const calls = [];
   const runtime = {
-    initialize: async () => {},
+    initialize: async () => { calls.push(["initialize"]); },
     reconcile: async () => { calls.push(["reconcile"]); },
     handleMessage: async () => ({ ok: true }),
     derivedState: {},
@@ -85,10 +85,18 @@ test("tab and permission events refresh badge and reconcile without tabs permiss
   await Promise.all(chromeApi.tabs.onUpdated.emit(4, { status: "complete", url: "https://example.com" }, { id: 4 }));
   await Promise.all(chromeApi.permissions.onAdded.emit({ origins: ["https://example.com/*"] }));
   assert.deepEqual(calls, [
+    ["initialize"],
     ["badge", 4, undefined],
+    ["initialize"],
     ["badge", 4, "https://example.com"],
     ["reconcile"],
   ]);
+});
+
+test("service-worker entry registers listeners without eager initialization", async () => {
+  const source = await readFile(new URL("../../src/service-worker.js", import.meta.url), "utf8");
+  assert.match(source, /registerRuntimeListeners\(chrome, runtime\)/);
+  assert.doesNotMatch(source, /runtime\.initialize\(\)/);
 });
 
 test("successful mutations refresh all tab badges while read-only messages do not", () => {

@@ -68,7 +68,7 @@ test("generated CWS ZIP exactly matches the allowlist and passes content validat
   const writtenArchive = await readFile(outputPath);
   const { entries, manifest } = await verifyCwsZip(writtenArchive);
   assert.deepEqual(entries.map(({ name }) => name), await loadCwsAllowlist());
-  assert.equal(manifest.version, "1.0.0");
+  assert.equal(manifest.version, "1.0.1");
   assert.equal(writtenArchive.compare(archive), 0);
 });
 
@@ -81,5 +81,5 @@ test("CWS ZIP generation is byte-identical and contains safe normalized paths", 
     assert.ok(!name.startsWith("/"));
     assert.ok(!name.split("/").includes(".."));
   }
-  assert.match((await defaultOutputPath()).replaceAll("\\", "/"), /\/dist\/mobile-desktop-profile-switcher-v1\.0\.0\.zip$/);
+  assert.match((await defaultOutputPath()).replaceAll("\\", "/"), /\/dist\/mobile-desktop-profile-switcher-v1\.0\.1\.zip$/);
 });

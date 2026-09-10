@@ -5,7 +5,8 @@ import { createChromeActionBadgeAdapter } from "../adapters/chrome-action-badge.
 import { createDnrReconciler } from "../adapters/dnr-reconciler.js";
 import { createBadgeManager } from "./badge-manager.js";
 import { createRuntimeBackend } from "./backend.js";
-import { createRuntimeMessageHandler, initializeRuntime } from "./runtime.js";
+import { createRuntimeMessageHandler, initializeRuntime, MESSAGE_TYPE, publicRuntimeError } from "./runtime.js";
+import { startGestureSensitivePermissionCommand } from "./permission-commands.js";
 
 export function createExtensionRuntime(chromeApi, {
   createMutationId = () => crypto.randomUUID(),
@@ -33,12 +34,42 @@ export function createExtensionRuntime(chromeApi, {
     await refreshBadges();
     return result;
   });
-  const reconcile = () => enqueue(async () => {
-    const result = await derivedState.reconcile(await backend.getState());
-    await refreshBadges();
-    return result;
-  });
+  // Initialization reads storage and reconciles its derived DNR state, so it is
+  // also the safe entry point for permission-change recovery after worker wake.
+  const reconcile = () => initialize();
   const rawHandler = createRuntimeMessageHandler({ backend, derivedState });
+  const completeGestureSensitive = (prepared) => enqueue(async () => {
+    let response;
+    try {
+      if (prepared.type === MESSAGE_TYPE.CREATE_SITE_WITH_PERMISSION) {
+        response = { ok: true, value: await backend.createSite(prepared) };
+      } else if (prepared.type === MESSAGE_TYPE.UPDATE_SITE_WITH_PERMISSION) {
+        response = { ok: true, value: await backend.updateSiteWithPermission(prepared) };
+      } else {
+        const value = await backend.grantSiteAccess(prepared);
+        let warning = null;
+        if (prepared.currentTabId !== null) {
+          try { await chromeApi.tabs.reload(prepared.currentTabId); }
+          catch { warning = "reload_failed"; }
+        }
+        response = { ok: true, value: Object.freeze({ ...value, warning }) };
+      }
+      await refreshBadges();
+      return Object.freeze(response);
+    } catch (error) {
+      return publicRuntimeError(error);
+    }
+  });
+  const handleNormalMessage = async (message) => {
+    await initialize();
+    return enqueue(async () => {
+      const response = await rawHandler(message);
+      if (response.ok && !["get_state", "inspect_permissions"].includes(message?.type)) {
+        await refreshBadges();
+      }
+      return response;
+    });
+  };
   return Object.freeze({
     storage,
     permissions,
@@ -48,15 +79,21 @@ export function createExtensionRuntime(chromeApi, {
     badges,
     initialize,
     reconcile,
-    handleMessage: async (message) => {
-      await initialize();
-      return enqueue(async () => {
-        const response = await rawHandler(message);
-        if (response.ok && !["get_state", "inspect_permissions"].includes(message?.type)) {
-          await refreshBadges();
+    handleMessage(message) {
+      try {
+        const permissionOperation = startGestureSensitivePermissionCommand(message, permissions);
+        if (permissionOperation !== null) {
+          return permissionOperation
+            .then(async (prepared) => {
+              await initialize();
+              return completeGestureSensitive(prepared);
+            })
+            .catch((error) => publicRuntimeError(error));
         }
-        return response;
-      });
+      } catch (error) {
+        return Promise.resolve(publicRuntimeError(error));
+      }
+      return handleNormalMessage(message);
     },
   });
 }
@@ -79,18 +116,25 @@ export function registerRuntimeListeners(chromeApi, runtime) {
   chromeApi.permissions.onAdded.addListener(() => runtime.reconcile().catch((error) => {
     console.error("MDPS permission-added reconcile failed", error);
   }));
-  chromeApi.tabs.onActivated.addListener(({ tabId }) => runtime.badges.refreshTab(tabId).catch((error) => {
-    console.error("MDPS badge activation refresh failed", error);
-  }));
+  chromeApi.tabs.onActivated.addListener(({ tabId }) => runtime.initialize()
+    .then(() => runtime.badges.refreshTab(tabId))
+    .catch((error) => {
+      console.error("MDPS badge activation refresh failed", error);
+    }));
   chromeApi.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status || changeInfo.url) {
-      runtime.badges.refreshTab(tabId, changeInfo.url ?? tab?.url).catch((error) => {
-        console.error("MDPS badge navigation refresh failed", error);
-      });
+      return runtime.initialize()
+        .then(() => runtime.badges.refreshTab(tabId, changeInfo.url ?? tab?.url))
+        .catch((error) => {
+          console.error("MDPS badge navigation refresh failed", error);
+        });
     }
   });
   chromeApi.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    runtime.handleMessage(message).then(sendResponse);
+    const operation = runtime.handleMessage(message);
+    operation.then((response) => {
+      try { sendResponse(response); } catch { /* Receiver closure never cancels the operation. */ }
+    });
     return true;
   });
 }

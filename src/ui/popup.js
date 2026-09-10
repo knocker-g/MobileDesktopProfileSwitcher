@@ -1,5 +1,4 @@
 import { createActiveTabAdapter } from "../adapters/active-tab.js";
-import { createChromePermissionsAdapter } from "../adapters/chrome-permissions.js";
 import { createChromeActionBadgeAdapter } from "../adapters/chrome-action-badge.js";
 import { PROFILE } from "../core/profiles.js";
 import { badgeTextForTab } from "./badge-model.js";
@@ -12,11 +11,9 @@ import {
   removeHostRow,
   validateSiteForm,
 } from "./popup-model.js";
-import { requestExactHostAccess } from "./popup-actions.js";
 import { applyCurrentSiteProfile, completePopupStateChange } from "./profile-change.js";
 
 const activeTab = createActiveTabAdapter(chrome.tabs);
-const permissions = createChromePermissionsAdapter(chrome.permissions);
 const actionBadge = createChromeActionBadgeAdapter(chrome.action);
 const popupElementIds = Object.freeze({
   app: "app",
@@ -406,15 +403,17 @@ async function saveForm(event) {
 
   setBusy(true, "Requesting site access…");
   showError();
-  const permissionPromise = requestExactHostAccess(requiredHosts, permissions);
   try {
-    if (!(await permissionPromise)) {
-      showError("Site access was not granted.");
-      return;
-    }
-    const type = form.siteId ? MESSAGE_TYPE.UPDATE_SITE : MESSAGE_TYPE.CREATE_SITE;
+    const type = !form.siteId
+      ? MESSAGE_TYPE.CREATE_SITE_WITH_PERMISSION
+      : requiredHosts.length > 0
+        ? MESSAGE_TYPE.UPDATE_SITE_WITH_PERMISSION
+        : MESSAGE_TYPE.UPDATE_SITE;
     const site = form.siteId ? { siteId: form.siteId, ...candidate.value } : candidate.value;
-    const result = await command(type, { expectedRevision: state.revision, site });
+    const payload = type === MESSAGE_TYPE.UPDATE_SITE_WITH_PERMISSION
+      ? { expectedRevision: state.revision, site, addedHosts: requiredHosts }
+      : { expectedRevision: state.revision, site };
+    const result = await command(type, payload);
     if (result?.permissionCleanup?.released === false || result?.permissionCleanup?.warning) {
       showError("Changes were saved, but unused site access could not be removed.");
     }
@@ -422,7 +421,8 @@ async function saveForm(event) {
     await refresh();
   } catch (error) {
     await refreshIfStale(error);
-    showError("Could not save changes.");
+    if (["permission_denied", "permission_post_condition_failure"].includes(error?.code)) showError("Site access was not granted.");
+    else showError("Could not save changes.");
   } finally { setBusy(false); render(); }
 }
 
@@ -433,18 +433,19 @@ async function grantSite(site) {
   const targetTabId = currentTab.id;
   const reloadCurrentSite = model.currentSite?.id === site.id;
   const hosts = site.hosts.map((host) => host.hostname);
-  const permissionPromise = requestExactHostAccess(hosts, permissions);
   try {
-    if (!(await permissionPromise)) return showError("Site access was not granted.");
-    const result = await completePopupStateChange({
-      performChange: () => command(MESSAGE_TYPE.RECONCILE),
-      tabId: targetTabId,
-      shouldReload: reloadCurrentSite,
-      refreshState: refresh,
-      reloadTab: (tabId) => activeTab.reload(tabId),
+    const result = await command(MESSAGE_TYPE.GRANT_SITE_ACCESS, {
+      expectedRevision: state.revision,
+      siteId: site.id,
+      hosts,
+      currentTabId: reloadCurrentSite ? targetTabId : null,
     });
-    showPostChangeWarning(result);
-  } catch { showError("Could not grant site access."); }
+    await refresh();
+    if (result.warning) showPostChangeWarning(result);
+  } catch (error) {
+    if (["permission_denied", "permission_post_condition_failure"].includes(error?.code)) showError("Site access was not granted.");
+    else showError("Could not grant site access.");
+  }
   finally { setBusy(false); render(); }
 }
 

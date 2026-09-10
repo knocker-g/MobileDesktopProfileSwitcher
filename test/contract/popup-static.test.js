@@ -187,20 +187,29 @@ test("Current Site Profile change uses post-commit active-tab reload while edit 
   assert.doesNotMatch(js, /UPDATE_SITE[\s\S]{0,300}activeTab\.reload/);
 });
 
-test("Global, matching Grant, and matching Delete reuse conditional post-success reload", () => {
+test("Global and matching Delete reuse popup reload while Grant delegates durable continuation to runtime", () => {
   assert.match(js, /completePopupStateChange/);
   assert.match(js, /const reloadCurrentSite = Boolean\(model\.currentSite\)/);
-  assert.match(js, /const reloadCurrentSite = model\.currentSite\?\.id === site\.id/);
   assert.match(js, /const reloadCurrentSite = model\.currentSite\?\.id === siteId/);
   assert.match(js, /performChange: \(\) => command\(MESSAGE_TYPE\.SET_ENABLED/);
-  assert.match(js, /performChange: \(\) => command\(MESSAGE_TYPE\.RECONCILE\)/);
+  assert.match(js, /command\(MESSAGE_TYPE\.GRANT_SITE_ACCESS/);
+  assert.match(js, /currentTabId: reloadCurrentSite \? targetTabId : null/);
   assert.match(js, /MESSAGE_TYPE\.DELETE_SITE/);
 });
 
 test("popup controller sends only allowlisted typed runtime commands", () => {
   assert.doesNotMatch(js, /userAgent|addRules|ruleId|rawState/);
-  for (const type of ["GET_STATE", "INSPECT_PERMISSIONS", "SET_PROFILE", "SET_ENABLED", "CREATE_SITE", "UPDATE_SITE", "DELETE_SITE", "RECONCILE"]) assert.match(js, new RegExp(`MESSAGE_TYPE\\.${type}`));
+  for (const type of ["GET_STATE", "INSPECT_PERMISSIONS", "SET_PROFILE", "SET_ENABLED", "CREATE_SITE_WITH_PERMISSION", "UPDATE_SITE_WITH_PERMISSION", "UPDATE_SITE", "DELETE_SITE", "GRANT_SITE_ACCESS"]) assert.match(js, new RegExp(`MESSAGE_TYPE\\.${type}`));
   assert.doesNotMatch(js, /console\./);
+});
+
+test("Site Save and Grant delegate permission acquisition to gesture-sensitive runtime commands", () => {
+  assert.doesNotMatch(js, /chrome\.permissions|requestExactHostAccess|createChromePermissionsAdapter/);
+  assert.match(js, /const type = !form\.siteId[\s\S]*MESSAGE_TYPE\.CREATE_SITE_WITH_PERMISSION[\s\S]*requiredHosts\.length > 0[\s\S]*MESSAGE_TYPE\.UPDATE_SITE_WITH_PERMISSION[\s\S]*MESSAGE_TYPE\.UPDATE_SITE/);
+  assert.match(js, /addedHosts: requiredHosts/);
+  assert.match(js, /const result = await command\(type, payload\)/);
+  assert.match(js, /command\(MESSAGE_TYPE\.GRANT_SITE_ACCESS/);
+  assert.doesNotMatch(js, /permissionPatterns|origins:|ruleId|userAgent|rawState/);
 });
 
 test("popup element registry maps every camelCase property to an existing HTML id", () => {
